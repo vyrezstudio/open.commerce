@@ -1,0 +1,14 @@
+# Dependências e artefatos locais
+node_modules/
+_test_export*/
+*.log
+
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Backups locais exportados pelo painel
+opencommerce-backup-*.json

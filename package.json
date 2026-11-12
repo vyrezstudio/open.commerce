@@ -1,0 +1,11 @@
+{
+  "name": "opencommerce",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Criador de lojas virtuais com IA, PIX manual e gateways opcionais. 100% estático.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT"
+}
