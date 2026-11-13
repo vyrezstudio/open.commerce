@@ -70,7 +70,7 @@ Depois acesse **http://127.0.0.1:4173/**.
 | **Criação com IA** | Geração completa a partir de uma descrição; refinamento por conversa; sugestões prontas; fallback local sem chave de IA |
 | **Catálogo** | Produtos físicos e digitais, preços, preço antigo, selos, estoque, categorias, busca, imagens por upload/URL e capas geradas |
 | **Pedidos** | Checkout na prévia, captura automática de pedidos, status (aguardando/pago/enviado/entregue/cancelado), receita e exportação CSV |
-| **Pagamentos** | PIX manual com BR Code válido (EMV + CRC16), QR Code, copia-e-cola, validade; Mercado Pago, Asaas, EFI, Pagar.me e endpoint próprio |
+| **Pagamentos** | PIX manual com **chat de atendimento no checkout** (a loja entrega a chave e o cliente confirma), BR Code válido (EMV + CRC16), QR Code, copia-e-cola e validade; Mercado Pago, Asaas, EFI, Pagar.me e endpoint próprio |
 | **Cupons** | Cupons percentuais ou de valor fixo, com mínimo de compra e validade |
 | **Frete** | Frete fixo, grátis acima de um valor e prazo estimado |
 | **Aparência** | 6 temas, cores, fontes, estilo dos cards, layout do herói, seções ligáveis e logo próprio |
@@ -108,13 +108,23 @@ Você pode editar tudo manualmente e conectar a IA depois.
 
 ## 💳 Pagamentos
 
-### PIX manual (padrão)
+### PIX manual com chat (padrão)
 
 1. Em **Pagamentos**, informe sua chave PIX (CPF/CNPJ, e-mail, telefone ou aleatória),
    o nome do recebedor e a cidade.
-2. O checkout gera o **BR Code** e o **QR Code** no navegador do cliente.
-3. O cliente paga no app do banco e envia o comprovante.
-4. Você confirma o pedido em **Pedidos**.
+2. Mantenha ativado **Atendimento por chat antes do PIX**.
+3. No checkout, depois dos dados do cliente, abre-se uma conversa com a loja:
+   o pedido é reservado e a chave PIX é entregue na conversa.
+4. O cliente copia a chave, pode abrir o **QR Code/copia-e-cola**, conversar por
+   aqui ou continuar no **WhatsApp** com o resumo do pedido.
+5. Ele clica em **Já fiz o PIX · confirmar pedido** e o pedido aparece em **Pedidos**
+   (na prévia do painel, em tempo real).
+6. Você confere o comprovante e muda o status para pago/enviado.
+
+> Em um site estático não existe servidor de chat. A conversa do checkout é local
+> e entrega a chave automaticamente; o atendimento em tempo real acontece pelo
+> WhatsApp configurado em **Configurações**. Sem WhatsApp, a chave e o QR ficam
+> disponíveis na própria conversa.
 
 O PIX é gerado no próprio navegador, com CRC16 correto. Nenhum valor passa por
 servidores do OpenCommerce.
@@ -123,19 +133,26 @@ servidores do OpenCommerce.
 
 Em **Pagamentos → Gateway automático**, escolha:
 
-- Mercado Pago (chamada direta do navegador);
-- Asaas, EFI, Pagar.me ou API própria (via endpoint).
+- Mercado Pago (chamada direta do navegador, quando o CORS permitir);
+- Asaas, Pagar.me, EFI ou API própria (via endpoint serverless).
 
-Contrato do endpoint próprio:
+As chaves secretas **nunca** devem ficar no navegador. Publique o endpoint pronto
+em [`serverless/api/gateway.js`](serverless/api/gateway.js) e siga o
+[`serverless/README.md`](serverless/README.md). Ele já implementa Mercado Pago,
+Asaas e Pagar.me; a EFI exige certificado mTLS e está documentada separadamente.
+
+Contrato do endpoint:
 
 ```http
-POST https://sua-api.com/pix
+POST https://sua-api.vercel.app/api/gateway
 Content-Type: application/json
 
 {
+  "provider": "mercadopago",
   "storeId": "store_abc123",
-  "order": { "...": "pedido completo" },
-  "provider": "custom"
+  "store": { "name": "Minha Loja", "slug": "minha-loja" },
+  "env": "prod",
+  "order": { "id": "OC123", "total": 14990, "items": [], "customer": {} }
 }
 ```
 
@@ -144,6 +161,7 @@ Resposta esperada:
 ```json
 {
   "payment": {
+    "provider": "mercadopago",
     "payload": "000201...",
     "qr": "data:image/png;base64,...",
     "url": "https://..."
@@ -151,8 +169,8 @@ Resposta esperada:
 }
 ```
 
-> Para produção, mantenha segredos no seu servidor. Chaves salvas no painel ficam
-> no navegador do lojista.
+O checkout aceita `payload`, `qr` ou `url`, em qualquer combinação. Erros devem
+voltar como `{ "error": "mensagem" }` com status 4xx/5xx.
 
 ---
 
@@ -207,6 +225,10 @@ OpenCommerce/
 │  │  ├─ util.js              # helpers
 │  │  └─ zip.js               # gerador de ZIP sem dependências
 │  └─ vendor/qrcode.js        # biblioteca MIT de QR Code
+├─ serverless/
+│  ├─ api/gateway.js          # endpoint opcional: Mercado Pago, Asaas, Pagar.me
+│  ├─ package.json
+│  └─ README.md               # deploy e variáveis de ambiente
 └─ .github/workflows/pages.yml
 ```
 

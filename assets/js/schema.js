@@ -134,7 +134,7 @@ export const THEMES = [
 ];
 
 export const GATEWAYS = [
-  { id: 'manual', label: 'PIX manual (padrão)', desc: 'Gera o copia-e-cola/QR e você confirma o recebimento.' },
+  { id: 'manual', label: 'PIX manual (padrão)', desc: 'O cliente abre um chat com você no checkout e recebe a chave PIX.' },
   { id: 'mercadopago', label: 'Mercado Pago', desc: 'PIX automático via API do Mercado Pago.', docs: 'https://www.mercadopago.com.br/developers' },
   { id: 'asaas', label: 'Asaas', desc: 'Cobranças PIX automáticas.', docs: 'https://docs.asaas.com/' },
   { id: 'efi', label: 'EFI (Gerencianet)', desc: 'PIX via API EFI.', docs: 'https://dev.efipay.com.br/' },
@@ -170,7 +170,7 @@ export function generatedCover(label = 'Produto', hue = 20, hue2 = 320) {
       <stop offset="0" stop-color="rgba(255,255,255,.55)"/>
       <stop offset="1" stop-color="rgba(255,255,255,0)"/>
     </radialGradient>
-    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".07"/></feComponentTransfer><feBlend in="SourceGraphic" mode="overlay"/></filter>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".07"/></feComponentTransfer></filter>
   </defs>
   <rect width="800" height="800" fill="url(#g)"/>
   <rect width="800" height="800" fill="url(#r)"/>
@@ -181,6 +181,38 @@ export function generatedCover(label = 'Produto', hue = 20, hue2 = 320) {
   <text x="60" y="700" fill="rgba(255,255,255,.94)" font-family="Inter, Arial" font-size="46" font-weight="700">${safe}</text>
 </svg>`;
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+/** Corrige capas SVG antigas que escureciam a imagem por causa de um filtro. */
+export function repairGeneratedCover(value) {
+  const src = String(value || '');
+  if (!src.startsWith('data:image/svg+xml') || !src.includes('feBlend')) return value;
+  try {
+    const comma = src.indexOf(',');
+    const meta = comma >= 0 ? src.slice(0, comma) : 'data:image/svg+xml;charset=utf-8';
+    let svg = decodeURIComponent(src.slice(comma + 1));
+    svg = svg.replace(/<feBlend[^>]*\/>/g, '');
+    return meta + ',' + encodeURIComponent(svg);
+  } catch {
+    return value;
+  }
+}
+
+/** Aplica a correção de capas antigas sem alterar o objeto salvo. */
+export function repairStoreMedia(store) {
+  if (!store || typeof store !== 'object') return store;
+  const copy = { ...store };
+  if (copy.hero) copy.hero = { ...copy.hero, image: repairGeneratedCover(copy.hero.image) };
+  if (copy.about) copy.about = { ...copy.about, image: repairGeneratedCover(copy.about.image) };
+  if (copy.seo) copy.seo = { ...copy.seo, ogImage: repairGeneratedCover(copy.seo.ogImage) };
+  if (Array.isArray(copy.products)) {
+    copy.products = copy.products.map((p) => ({
+      ...p,
+      image: repairGeneratedCover(p.image),
+      gallery: Array.isArray(p.gallery) ? p.gallery.map((g) => repairGeneratedCover(g)) : p.gallery,
+    }));
+  }
+  return copy;
 }
 
 /* ------------------------------------------------------------------ */
@@ -274,6 +306,7 @@ export function defaultStore(overrides = {}) {
       city: 'SAO PAULO',
       instructions: 'Após o pagamento, envie o comprovante no WhatsApp para agilizar a confirmação.',
       whatsappCheckout: true,
+      manualChat: true,
       pixExpiration: 30,
       webhookUrl: '',
       gateway: { provider: 'manual', apiKey: '', publicKey: '', env: 'sandbox', endpoint: '' },
@@ -338,9 +371,9 @@ export function normalizePrice(value) {
 export function normalizeProduct(raw = {}) {
   const price = normalizePrice(raw.price ?? raw.preco ?? 0);
   const compareAt = normalizePrice(raw.compareAt ?? raw.compare_at ?? raw.oldPrice ?? 0);
-  const gallery = Array.isArray(raw.gallery) ? raw.gallery.filter(Boolean).map(String).slice(0, 6) : [];
-  const image = str(raw.image || raw.imageUrl || raw.imagem || gallery[0] || '') ||
-    generatedCover(str(raw.name || raw.title || 'Produto'), 20, 300);
+  const gallery = Array.isArray(raw.gallery) ? raw.gallery.filter(Boolean).map((g) => repairGeneratedCover(String(g))).slice(0, 6) : [];
+  const image = repairGeneratedCover(str(raw.image || raw.imageUrl || raw.imagem || gallery[0] || '') ||
+    generatedCover(str(raw.name || raw.title || 'Produto'), 20, 300));
   const stockRaw = raw.stock;
   const stock = stockRaw === '' || stockRaw === null || stockRaw === undefined ? null : clamp(Number(stockRaw) || 0, 0, 999999);
   return {
@@ -388,6 +421,9 @@ export function normalizeStore(raw = {}) {
   merged.slug = slugify(merged.slug || merged.name);
   merged.theme = { ...(THEMES.find((t) => t.id === merged.theme?.id) || THEMES[0]), ...(merged.theme || {}) };
   merged.products = (Array.isArray(merged.products) ? merged.products : []).map(normalizeProduct).slice(0, 200);
+  merged.hero.image = repairGeneratedCover(merged.hero.image);
+  if (merged.about) merged.about.image = repairGeneratedCover(merged.about.image);
+  if (merged.seo) merged.seo.ogImage = repairGeneratedCover(merged.seo.ogImage);
   merged.benefits = (Array.isArray(merged.benefits) ? merged.benefits : []).slice(0, 6);
   merged.faq.items = (Array.isArray(merged.faq.items) ? merged.faq.items : []).slice(0, 14);
   merged.testimonials.items = (Array.isArray(merged.testimonials.items) ? merged.testimonials.items : []).slice(0, 10);
@@ -440,6 +476,7 @@ function defaultStoreRaw() {
       city: 'SAO PAULO',
       instructions: '',
       whatsappCheckout: true,
+      manualChat: true,
       pixExpiration: 30,
       webhookUrl: '',
       gateway: { provider: 'manual', apiKey: '', publicKey: '', env: 'sandbox', endpoint: '' },
@@ -565,7 +602,7 @@ export function demoStore() {
         { value: '2 min', label: 'para receber' },
       ],
     },
-    announcement: { enabled: true, text: '10% OFF na primeira compra com o cupom BEMVINDO10' },
+    announcement: { enabled: true, text: 'Frete grátis acima de R$ 250 · 10% OFF na primeira compra com o cupom BEMVINDO10 · Acesso imediato aos produtos digitais' },
     products,
     benefits: [
       { icon: 'zap', title: 'Acesso imediato', text: 'Liberação automática após o PIX.' },
@@ -608,6 +645,7 @@ export function demoStore() {
       city: 'SAO PAULO',
       instructions: 'Pague o QR Code abaixo e envie o comprovante no WhatsApp. O acesso é liberado em até 10 minutos.',
       whatsappCheckout: true,
+      manualChat: true,
       pixExpiration: 30,
       webhookUrl: '',
       gateway: { provider: 'manual', apiKey: '', publicKey: '', env: 'sandbox', endpoint: '' },
@@ -627,7 +665,7 @@ export function demoStore() {
       askDocument: false,
       fields: { name: true, email: true, phone: true, address: false, document: false, notes: true },
       successTitle: 'Pedido recebido!',
-      successText: 'Obrigado pela compra. Se o PIX ainda não foi pago, use o código acima no app do seu banco.',
+      successText: 'Obrigado pela compra! Se ainda não pagou, abra "Ver código PIX do pedido" abaixo e finalize no app do banco.',
       minOrder: 0,
     },
     published: { url: '', at: '' },

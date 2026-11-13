@@ -813,12 +813,13 @@ ${pageHead('Pagamentos', 'Receba por PIX na sua conta. Manual por padrão, autom
   </div>
 
   <div class="divider"></div>
-  ${toggle({ label: 'Enviar pedido pelo WhatsApp', name: 'waCheckout', checked: p.whatsappCheckout !== false, hint: 'Depois de gerar o PIX, o cliente pode enviar o resumo com um clique.' })}
+  ${toggle({ label: 'Atendimento por chat antes do PIX', name: 'manualChat', checked: p.manualChat !== false, hint: 'No checkout manual, o cliente abre uma conversa com o vendedor. O vendedor envia a chave PIX e o cliente paga.' })}
+  ${toggle({ label: 'Enviar pedido pelo WhatsApp', name: 'waCheckout', checked: p.whatsappCheckout !== false, hint: 'O cliente pode continuar a conversa no WhatsApp com o pedido já preenchido.' })}
   <label class="field mt-12"><span class="field-label">Webhook de pedidos (opcional)</span><input data-bind="payment.webhookUrl" value="${esc(p.webhookUrl || '')}" placeholder="https://hook.seu-servidor.com/opencommerce"><span class="hint">Recebe um POST em JSON a cada pedido. Funciona com Google Apps Script, Make, n8n, Supabase, etc.</span></label>
 </div>
 
 <div class="card-block">
-  <div class="block-head"><span class="bi">${icon('card', 16)}</span><div><h3>Gateway automático</h3><p>Opcional. Sem gateway, a confirmação é manual.</p></div><div class="right">${gateway.provider !== 'manual' ? badge(gateway.provider, 'blue') : badge('manual', 'neutral')}</div></div>
+  <div class="block-head"><span class="bi">${icon('card', 16)}</span><div><h3>Gateway automático</h3><p>Cobrança PIX gerada e confirmada pelo gateway. Opcional.</p></div><div class="right">${gateway.provider !== 'manual' ? badge(GATEWAYS.find((g) => g.id === gateway.provider)?.label || gateway.provider, 'blue') : badge('manual', 'neutral')}</div></div>
   <div class="gateway-list">
     ${GATEWAYS.map((g) => `<button class="gateway-card ${gateway.provider === g.id ? 'on' : ''}" data-gateway="${g.id}">
       <b>${esc(g.label)}</b><span>${esc(g.desc)}</span>
@@ -832,11 +833,21 @@ ${pageHead('Pagamentos', 'Receba por PIX na sua conta. Manual por padrão, autom
       <label class="field"><span class="field-label">Ambiente</span><select data-bind="payment.gateway.env">
         <option value="sandbox" ${gateway.env === 'sandbox' ? 'selected' : ''}>Teste (sandbox)</option>
         <option value="prod" ${gateway.env === 'prod' ? 'selected' : ''}>Produção</option>
-      </select></label>
-      <label class="field"><span class="field-label">Chave secreta (API key)</span><input type="password" data-bind="payment.gateway.apiKey" value="${esc(gateway.apiKey || '')}" placeholder="Sua chave do gateway"><span class="hint">Fica no navegador do lojista. Para produção, prefira um endpoint próprio.</span></label>
-      <label class="field" style="grid-column:1/-1"><span class="field-label">Endpoint do seu servidor (recomendado)</span><input data-bind="payment.gateway.endpoint" value="${esc(gateway.endpoint || '')}" placeholder="https://sua-api.com/pix"><span class="hint">Recebe <code>{ storeId, order, provider }</code> e devolve <code>{ payment: { payload, qr, url } }</code>. Evita expor segredos no navegador.</span></label>
+      </select><span class="hint">Use sandbox até validar o fluxo completo.</span></label>
+      <label class="field"><span class="field-label">Endpoint do gateway <b>*</b></span><input data-bind="payment.gateway.endpoint" value="${esc(gateway.endpoint || '')}" placeholder="https://sua-api.vercel.app/api/gateway"><span class="hint">Sua função serverless cria a cobrança e devolve o QR. O modelo pronto está em <code>serverless/api/gateway.js</code>.</span></label>
+      ${gateway.provider === 'mercadopago' ? `<label class="field" style="grid-column:1/-1"><span class="field-label">Access token do Mercado Pago (modo direto)</span><input type="password" data-bind="payment.gateway.apiKey" value="${esc(gateway.apiKey || '')}" placeholder="APP_USR-..."><span class="hint">Opcional. Só funciona se o navegador permitir CORS. Para produção, prefira o endpoint.</span></label>` : ''}
     </div>
-    <div class="alert alert-warn mt-12">${icon('alert', 16)}<span><b>Atenção:</b> chamadas diretas a Asaas, EFI e Pagar.me exigem autenticação e normalmente bloqueiam CORS. Use o campo acima com uma função serverless (Cloudflare Worker, Vercel) e mantenha a chave no servidor. O Mercado Pago funciona direto no navegador.</span></div>
+
+    <div class="gateway-hint">
+      <span class="bi">${icon('shield', 16)}</span>
+      <div>
+        <b>${gateway.endpoint ? 'Endpoint configurado' : 'Falta configurar o endpoint'}</b>
+        <p>${gateway.endpoint ? 'O checkout vai chamar a sua função e exibir o QR/checkout retornado pelo gateway.' : 'Asaas, EFI, Pagar.me e Mercado Pago exigem segredo no servidor. Publique o modelo <code>serverless/api/gateway.js</code> no Vercel/Cloudflare e cole a URL acima.'}</p>
+        ${GATEWAYS.find((g) => g.id === gateway.provider)?.docs ? `<a href="${esc(GATEWAYS.find((g) => g.id === gateway.provider).docs)}" target="_blank" rel="noopener">Documentação do ${esc(GATEWAYS.find((g) => g.id === gateway.provider).label)} ${icon('external', 12)}</a>` : ''}
+      </div>
+    </div>
+
+    <div class="alert alert-warn mt-12">${icon('alert', 16)}<span><b>Chaves ficam no servidor.</b> Nunca coloque a chave secreta do gateway no código da loja. O endpoint recebe <code>{ provider, storeId, order, env }</code> e devolve <code>{ payment: { payload, qr, url } }</code>.</span></div>
   ` : `<p class="tiny dim mt-12">Modo manual: o cliente paga no app do banco e você confirma o pedido em <b>Pedidos</b>. Sem taxas e sem depender de aprovação de conta.</p>`}
 </div>
 
@@ -867,6 +878,13 @@ ${pageHead('Pagamentos', 'Receba por PIX na sua conta. Manual por padrão, autom
   waToggle?.addEventListener('change', () => {
     const next = clone(api.store);
     next.payment.whatsappCheckout = waToggle.checked;
+    api.save(next);
+  });
+
+  const chatToggle = pane.querySelector('input[name="manualChat"]');
+  chatToggle?.addEventListener('change', () => {
+    const next = clone(api.store);
+    next.payment.manualChat = chatToggle.checked;
     api.save(next);
   });
 

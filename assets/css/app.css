@@ -780,6 +780,11 @@ body.no-preview .preview-col { display: none; }
 .gateway-card b { font-size: 12px; display: block; }
 .gateway-card span { font-size: 10.5px; color: var(--dim); display: block; margin-top: 2px; line-height: 1.4; }
 .gateway-card .tag { font-size: 8.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--green); margin-top: 5px; display: inline-block; }
+.gateway-hint { display: flex; gap: 11px; margin-top: 14px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255, 255, 255, .018); }
+.gateway-hint .bi { width: 30px; height: 30px; border-radius: 9px; background: rgba(96, 165, 250, .12); color: #7dd3fc; display: grid; place-items: center; flex: none; }
+.gateway-hint b { font-size: 12px; }
+.gateway-hint p { font-size: 11px; color: var(--dim); margin-top: 3px; line-height: 1.55; }
+.gateway-hint a { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--brand-2); margin-top: 6px; }
 
 /* responsive */
 @media (max-width: 1180px) {

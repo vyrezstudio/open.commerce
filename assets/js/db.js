@@ -1,7 +1,7 @@
 /* OpenCommerce · persistência local (localStorage) */
 
 import { storage, uid, nowIso } from './util.js';
-import { normalizeStore, normalizeOrder, demoStore, defaultStore } from './schema.js';
+import { normalizeStore, normalizeOrder, demoStore, defaultStore, repairStoreMedia } from './schema.js';
 
 const K = {
   stores: 'oc_stores_v1',
@@ -21,7 +21,7 @@ export function listStores() {
 }
 
 export function getStore(id) {
-  return listStores().find((s) => s.id === id) || null;
+  return repairStoreMedia(listStores().find((s) => s.id === id) || null);
 }
 
 export function saveStore(store) {

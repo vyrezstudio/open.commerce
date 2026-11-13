@@ -337,9 +337,15 @@ Em **Settings → Pages → Custom domain**, informe o seu domínio e crie o reg
 - Chave PIX configurada: ${store.payment?.pixKey ? 'sim' : 'NÃO — configure no painel do OpenCommerce antes de divulgar'}
 - Recebedor: ${store.payment?.holderName || '(não informado)'}
 - Cidade: ${store.payment?.city || '(não informada)'}
+- WhatsApp de atendimento: ${store.contact?.whatsapp || '(não informado)'}
 
-O checkout gera o QR Code e o código copia-e-cola no navegador do cliente.
-A confirmação é manual, a menos que você configure um gateway no painel.
+O checkout abre um chat com a loja. O cliente recebe a chave PIX, pode copiar a
+chave, abrir o QR Code/copia-e-cola e confirmar o pedido. A conversa também pode
+continuar no WhatsApp configurado.
+
+A confirmação é manual, a menos que você configure um gateway automático no
+painel do OpenCommerce (Mercado Pago, Asaas, Pagar.me ou endpoint próprio).
+Nesse caso, o checkout chama o endpoint serverless e exibe o QR/link devolvido.
 
 ## Suporte
 

@@ -272,6 +272,73 @@ footer{border-top:1px solid var(--line);padding:56px 0 30px;margin-top:20px}
 .dl-list a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:.82rem;font-weight:600;background:var(--surface)}
 .dl-list a:hover{border-color:var(--brand)}
 
+/* extras: progresso, marquee, fab, chat */
+.scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--brand),var(--accent));z-index:75;transition:width .1s linear;pointer-events:none}
+.announce{overflow:hidden;position:relative}
+.announce.marquee{padding:0}
+.announce.marquee .announce-track{display:inline-flex;gap:64px;white-space:nowrap;padding:9px 0;animation:marquee 28s linear infinite;will-change:transform}
+.announce.marquee .announce-track span{padding-right:64px}
+.announce.marquee:hover .announce-track{animation-play-state:paused}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.fab-stack{position:fixed;right:18px;bottom:20px;z-index:76;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.fab{display:inline-flex;align-items:center;gap:9px;border-radius:99px;font-weight:800;font-size:.8rem;transition:.2s;backdrop-filter:blur(12px)}
+.fab-wa{padding:12px 17px;background:#25D366;color:#03150a;box-shadow:0 16px 34px -14px rgba(37,211,102,.75)}
+.fab-wa:hover{transform:translateY(-2px);box-shadow:0 20px 40px -14px rgba(37,211,102,.85)}
+.fab-wa svg{width:20px;height:20px}
+.fab-top{width:42px;height:42px;justify-content:center;background:color-mix(in srgb,var(--surface) 88%,transparent);border:1px solid var(--line);color:var(--text);opacity:0;pointer-events:none;transform:translateY(8px)}
+.fab-top.show{opacity:1;pointer-events:auto;transform:none}
+.fab-top:hover{border-color:var(--brand)}
+.card-media::after{content:"";position:absolute;inset:-20%;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.14) 49%,transparent 60%);transform:translateX(-110%);transition:transform .85s cubic-bezier(.2,.7,.2,1);pointer-events:none;z-index:1}
+.card:hover .card-media::after{transform:translateX(110%)}
+.card-quick{position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;border-radius:99px;background:color-mix(in srgb,var(--bg) 72%,transparent);border:1px solid var(--line);display:grid;place-items:center;backdrop-filter:blur(8px);opacity:0;transform:translateY(-4px);transition:.2s;color:var(--text)}
+.card:hover .card-quick,.card:focus-within .card-quick{opacity:1;transform:none}
+.card-quick:hover{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.card-quick svg{width:16px;height:16px}
+@media (hover:none){.card-quick{opacity:1;transform:none}}
+.ship-goal{margin:4px 0 2px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+.ship-goal.done{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.ship-goal-top{font-size:.73rem;color:var(--muted);margin-bottom:7px;line-height:1.45}
+.ship-goal-top b{color:var(--text)}
+.ship-bar{height:5px;border-radius:99px;background:var(--line);overflow:hidden}
+.ship-bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--accent));transition:width .35s}
+.chat-head{display:flex;align-items:center;gap:11px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:12px}
+.chat-avatar{width:40px;height:40px;border-radius:99px;background:var(--brand-soft);border:1px solid color-mix(in srgb,var(--brand) 40%,var(--line));display:grid;place-items:center;color:var(--brand);font-weight:800;font-size:.95rem;overflow:hidden;flex:none}
+.chat-avatar img{width:100%;height:100%;object-fit:cover}
+.chat-head strong{display:block;font-size:.9rem;line-height:1.25}
+.chat-head .online{display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--accent);margin-top:2px}
+.chat-head .online::before{content:"";width:7px;height:7px;border-radius:99px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.chat-head .secure{margin-left:auto;font-size:.64rem;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.chat-thread{max-height:270px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:3px 2px 6px}
+.chat-msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:.84rem;line-height:1.5;white-space:pre-line;word-break:break-word}
+.chat-msg.seller{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.chat-msg.customer{align-self:flex-end;background:var(--brand);color:var(--brand-ink);border-bottom-right-radius:4px}
+.chat-msg.system{align-self:center;background:transparent;color:var(--muted);font-size:.68rem;text-align:center;padding:3px 10px;max-width:100%}
+.chat-msg .msg-time{display:block;font-size:.6rem;opacity:.62;margin-top:4px}
+.chat-pix-card{margin-top:9px;padding:9px 11px;border:1px dashed color-mix(in srgb,var(--brand) 55%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--bg) 55%,transparent)}
+.chat-pix-card small{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);margin-bottom:3px}
+.chat-pix-card code{display:block;font-size:.73rem;font-family:ui-monospace,monospace;word-break:break-all;color:var(--text)}
+.chat-pix-card button{margin-top:7px;font-size:.68rem;font-weight:800;color:var(--brand);text-decoration:underline}
+.chat-typing{display:inline-flex;gap:4px;padding:12px 15px;align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:14px;border-bottom-left-radius:4px}
+.chat-typing i{width:5px;height:5px;border-radius:99px;background:var(--muted);animation:typing 1s infinite}
+.chat-typing i:nth-child(2){animation-delay:.15s}
+.chat-typing i:nth-child(3){animation-delay:.3s}
+@keyframes typing{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-2px)}}
+.chat-input{display:flex;gap:8px;margin-top:10px}
+.chat-input input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:11px 16px;font-size:.84rem;outline:none;transition:.16s}
+.chat-input input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.chat-send{width:42px;height:42px;border-radius:99px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;flex:none;transition:.18s}
+.chat-send:hover{transform:translateY(-1px)}
+.chat-send svg{width:17px;height:17px}
+.chat-note{font-size:.67rem;color:var(--muted);margin-top:8px;line-height:1.55}
+.chat-note a{color:var(--brand);text-decoration:underline;font-weight:700}
+.chat-quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.chat-quick button{font-size:.69rem;padding:6px 10px;border:1px solid var(--line);border-radius:99px;color:var(--muted);background:transparent;transition:.16s}
+.chat-quick button:hover{border-color:var(--brand);color:var(--text)}
+.chat-actions{display:grid;gap:8px;margin-top:14px}
+.pix-reveal{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
+.gateway-open{display:inline-flex;margin-top:8px}
+.share-btn{display:inline-flex}
+
 .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,120%);background:var(--text);color:var(--bg);padding:12px 20px;border-radius:12px;font-size:.84rem;font-weight:700;z-index:200;transition:transform .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 20px 40px rgba(0,0,0,.3);max-width:calc(100% - 32px);text-align:center}
 .toast.show{transform:translate(-50%,0)}
 
@@ -318,6 +385,10 @@ footer{border-top:1px solid var(--line);padding:56px 0 30px;margin-top:20px}
   .hero-actions .btn{width:100%}
   .hero-float{display:none}
   .drawer{width:100%}
+  .fab-stack{right:12px;bottom:12px}
+  .fab-wa{padding:12px}
+  .fab-wa span{display:none}
+  .chat-thread{max-height:230px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
@@ -385,6 +456,10 @@ function storefrontRuntime() {
     gatewayPayment: null,
     filter: 'all',
     search: '',
+    chat: [],
+    chatRevealed: false,
+    chatReplied: false,
+    pixDeadline: 0,
   };
 
   function readCart() {
@@ -478,10 +553,17 @@ function storefrontRuntime() {
     const disc = discount();
     const total = orderTotal();
     const freeAbove = Number(S.shipping?.freeAbove) || 0;
+    const goalPct = freeAbove > 0 ? Math.min(100, Math.round((sub / freeAbove) * 100)) : 0;
+    const shipGoal = S.shipping?.enabled && hasPhysical() && freeAbove > 0
+      ? '<div class="ship-goal' + (sub >= freeAbove ? ' done' : '') + '">' +
+        '<div class="ship-goal-top">' + (sub >= freeAbove ? '🎉 Você ganhou <b>frete grátis</b>!' : 'Faltam <b>' + money(freeAbove - sub) + '</b> para o frete grátis') + '</div>' +
+        '<div class="ship-bar"><span style="width:' + goalPct + '%"></span></div></div>'
+      : '';
     foot.innerHTML =
       (S.coupons && S.coupons.length
         ? '<div class="coupon"><input id="couponInput" placeholder="Cupom de desconto" value="' + esc(state.coupon ? state.coupon.code : '') + '"><button class="btn btn-ghost btn-sm" data-apply-coupon>Aplicar</button></div>'
         : '') +
+      shipGoal +
       '<div class="line"><span>Subtotal</span><strong>' + money(sub) + '</strong></div>' +
       (ship ? '<div class="line"><span>Frete</span><strong>' + money(ship) + '</strong></div>' : (hasPhysical() && freeAbove ? '<div class="line"><span>Frete</span><strong style="color:var(--accent)">Grátis</strong></div>' : '')) +
       (disc ? '<div class="line"><span>Desconto (' + esc(state.coupon.code) + ')</span><strong style="color:var(--accent)">− ' + money(disc) + '</strong></div>' : '') +
@@ -561,6 +643,7 @@ function storefrontRuntime() {
       (p.stock !== null ? '<p class="pv-note">' + (p.stock > 0 ? p.stock + ' disponível(is) em estoque' : 'Produto esgotado') + '</p>' : '') +
       '<div class="pv-actions"><button class="btn btn-primary" style="flex:1" data-add="' + esc(p.id) + '" ' + (p.stock === 0 ? 'disabled' : '') + '>Adicionar ao carrinho</button>' +
       (S.contact && S.contact.whatsapp ? '<a class="btn btn-ghost" target="_blank" rel="noopener" href="' + esc(waHref("Olá! Tenho uma dúvida sobre " + p.name)) + '">Dúvida</a>' : '') +
+      '<button class="btn btn-ghost share-btn" data-share="' + esc(p.id) + '" aria-label="Compartilhar produto" style="padding:14px 16px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.6 6.8-4.2M8.6 13.4l6.8 4.2"/></svg></button>' +
       '</div>' +
       '<div class="trustline"><span>🔒 Ambiente seguro</span><span>↩ 7 dias de garantia</span></div>' +
       '</div>';
@@ -658,6 +741,145 @@ function storefrontRuntime() {
     return { value: discount(), code: state.coupon ? state.coupon.code : '' };
   }
 
+  function gatewayInfo() {
+    const g = (S.payment && S.payment.gateway) || {};
+    const manual = !g.provider || g.provider === 'manual';
+    const configured = !manual && (!!g.endpoint || (g.provider === 'mercadopago' && !!g.apiKey));
+    return { ...g, manual, configured };
+  }
+
+  function manualChatMode() {
+    const p = S.payment || {};
+    const g = gatewayInfo();
+    return p.manualChat !== false && (g.manual || !g.configured);
+  }
+
+  function nowTime() {
+    try { return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+    catch (err) { return ''; }
+  }
+
+  function pushChat(from, text, extra) {
+    state.chat.push(Object.assign({ from, text, time: nowTime() }, extra || {}));
+  }
+
+  function scrollChat() {
+    const el = $('#chatThread');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  function chatPixCard() {
+    const key = (S.payment && S.payment.pixKey) || '';
+    if (!key) return '';
+    return '<div class="chat-pix-card"><small>Chave PIX para pagamento</small><code>' + esc(key) + '</code>' +
+      '<button type="button" data-copy-key="' + esc(key) + '">Copiar chave</button></div>';
+  }
+
+  function seedChat(order) {
+    const first = String(order.customer?.name || '').trim().split(/\s+/)[0] || 'tudo bem';
+    const p = S.payment || {};
+    pushChat('seller', 'Olá, ' + first + '! 👋\nSeu pedido ' + order.id + ' foi reservado no valor de ' + money(order.total) + '.');
+    pushChat(
+      'seller',
+      p.pixKey
+        ? 'Para pagar, faça um PIX de ' + money(order.total) + ' para a chave abaixo e envie o comprovante por aqui.'
+        : 'O vendedor ainda não cadastrou a chave PIX. Me chame no WhatsApp para receber os dados de pagamento.',
+      p.pixKey ? { pix: true } : null
+    );
+    pushChat('system', 'Pagamento manual · o vendedor confirma o recebimento');
+    if (p.instructions) pushChat('system', p.instructions);
+  }
+
+  function chatTranscript() {
+    return state.chat
+      .filter((m) => m.from !== 'system')
+      .map((m) => (m.from === 'customer' ? 'Cliente: ' : 'Loja: ') + m.text)
+      .join('\n');
+  }
+
+  function chatWhatsAppText(order) {
+    return orderWhatsAppText(order) + '\n\nConversa:\n' + chatTranscript();
+  }
+
+  function chatBubble(m) {
+    if (m.from === 'system') return '<div class="chat-msg system">' + esc(m.text) + '</div>';
+    return '<div class="chat-msg ' + m.from + '">' + esc(m.text).replace(/\n/g, '<br>') +
+      (m.pix ? chatPixCard() : '') +
+      '<span class="msg-time">' + esc(m.time) + '</span></div>';
+  }
+
+  function chatReveal(order) {
+    if (!order.pix) {
+      return '<div class="pix-reveal"><div class="co-review" style="margin:0;text-align:center;font-size:.8rem;color:var(--muted)">A chave PIX ainda não foi cadastrada pela loja. Combine o pagamento pelo WhatsApp.</div></div>';
+    }
+    const qr = qrMarkup(order.pix);
+    return '<div class="pix-reveal">' +
+      '<div class="pix-box">' +
+      (qr ? '<div class="pix-qr">' + qr + '</div>' : '') +
+      '<div class="copybox"><code id="pixCode">' + esc(order.pix) + '</code><button class="btn btn-ghost btn-sm" data-copy-pix>Copiar</button></div>' +
+      '<div class="timer">Valor: <b>' + money(order.total) + '</b>' + (S.payment && S.payment.pixExpiration ? ' · expira em <b id="pixTimer">' + pad(S.payment.pixExpiration) + ':00</b>' : '') + '</div>' +
+      '</div></div>';
+  }
+
+  function renderChatCheckout(order, body) {
+    const wa = S.contact && S.contact.whatsapp;
+    const revealed = state.chatRevealed && !!order.pix;
+    const logo = S.logoImage
+      ? '<img src="' + esc(S.logoImage) + '" alt="">'
+      : esc((S.name || 'L').slice(0, 1).toUpperCase());
+    body.innerHTML =
+      '<div class="step-title">Fale com o vendedor</div>' +
+      '<p class="step-sub">Seu pedido foi reservado. O vendedor envia a chave PIX nesta conversa.</p>' +
+      '<div class="chat-head">' +
+        '<span class="chat-avatar">' + logo + '</span>' +
+        '<div><strong>' + esc(S.name || 'Loja') + '</strong><span class="online">online agora</span></div>' +
+        '<span class="secure">🔒 ambiente seguro</span>' +
+      '</div>' +
+      '<div class="chat-thread" id="chatThread">' + state.chat.map(chatBubble).join('') + '</div>' +
+      '<div class="chat-quick">' +
+        '<button type="button" data-quick-chat="Qual o prazo de entrega?">Prazo de entrega</button>' +
+        '<button type="button" data-quick-chat="Posso pagar agora?">Posso pagar agora?</button>' +
+        '<button type="button" data-quick-chat="Preciso de ajuda com o PIX">Ajuda com o PIX</button>' +
+      '</div>' +
+      '<form class="chat-input" id="chatForm" autocomplete="off">' +
+        '<input id="chatInput" maxlength="500" placeholder="Escreva para o vendedor…" aria-label="Mensagem para o vendedor">' +
+        '<button class="chat-send" type="submit" aria-label="Enviar mensagem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button>' +
+      '</form>' +
+      '<div class="chat-note">' +
+        (wa
+          ? 'A conversa fica salva neste dispositivo. Para resposta em tempo real, <a href="' + esc(waHref(chatWhatsAppText(order))) + '" target="_blank" rel="noopener">continue no WhatsApp</a>.'
+          : 'O vendedor confirma o pagamento manualmente. Guarde o comprovante do PIX.') +
+      '</div>' +
+      (revealed ? chatReveal(order) : '') +
+      '<div class="chat-actions">' +
+        (!revealed ? '<button class="btn btn-ghost btn-block" data-reveal-pix>Ver QR Code e copia-e-cola</button>' : '') +
+        '<button class="btn btn-primary btn-block" data-confirm-order>Já fiz o PIX · confirmar pedido</button>' +
+        (wa ? '<a class="btn btn-ghost btn-block" href="' + esc(waHref(chatWhatsAppText(order))) + '" target="_blank" rel="noopener">Continuar no WhatsApp</a>' : '') +
+        '<button class="btn btn-block" style="color:var(--muted);font-size:.8rem" data-back-step>Voltar</button>' +
+      '</div>' +
+      '<div class="trustline"><span>💬 Atendimento direto</span><span>🔒 PIX oficial</span></div>';
+    if (revealed) startTimer();
+    setTimeout(scrollChat, 40);
+  }
+
+  function sendChatMessage(text) {
+    const value = String(text || '').trim();
+    if (!value) return;
+    pushChat('customer', value);
+    renderCheckout();
+    setTimeout(scrollChat, 30);
+    if (!state.chatReplied) {
+      state.chatReplied = true;
+      setTimeout(() => {
+        pushChat('seller', 'Anotado! Já registrei sua mensagem. Assim que o PIX cair eu confirmo o pedido. Se precisar de algo, é só chamar. ✅');
+        if (state.step === 2) {
+          renderCheckout();
+          setTimeout(scrollChat, 30);
+        }
+      }, 900);
+    }
+  }
+
   function renderReview() {
     return '<div class="co-review">' +
       cartPayload().map((it) => '<div class="line"><span>' + it.qty + '× ' + esc(it.name) + '</span><strong>' + money(it.price * it.qty) + '</strong></div>').join('') +
@@ -698,19 +920,31 @@ function storefrontRuntime() {
 
     if (state.step === 2) {
       const order = state.pendingOrder || buildOrder(state.buyer || {});
-      const payload = order.pix;
-      const qr = qrMarkup(payload);
-      const g = (S.payment && S.payment.gateway) || {};
-      const hasGateway = g.provider && g.provider !== 'manual' && (g.endpoint || (g.provider === 'mercadopago' && g.apiKey));
+      if (manualChatMode()) { renderChatCheckout(order, body); return; }
+      const g = gatewayInfo();
+      const gp = state.gatewayPayment;
+      const payload = (gp && gp.payload) || order.pix || '';
+      const qr = gp && gp.qr
+        ? '<div class="pix-qr"><img src="' + esc(gp.qr) + '" alt="QR Code PIX" style="width:216px;height:216px;display:block"></div>'
+        : qrMarkup(payload);
+      const link = (gp && gp.url) || '';
+      const wa = S.contact && S.contact.whatsapp;
       body.innerHTML =
-        '<div class="step-title">Pague com PIX</div><p class="step-sub">Escaneie o QR Code ou copie o código no app do seu banco.</p>' +
-        '<div class="pix-box">' + (qr ? '<div class="pix-qr">' + qr + '</div>' : '<div class="co-review" style="text-align:left">Use o código copia-e-cola abaixo no app do seu banco.</div>') +
-        (payload ? '<div class="copybox"><code id="pixCode">' + esc(payload) + '</code><button class="btn btn-ghost btn-sm" data-copy-pix>Copiar</button></div>' : '') +
-        '<div class="timer">Valor: <b>' + money(order.total) + '</b>' + (S.payment && S.payment.pixExpiration ? ' · expira em <b id="pixTimer">' + pad(S.payment.pixExpiration) + ':00</b>' : '') + '</div>' +
-        '<div class="line total" style="justify-content:center;gap:10px"><span style="color:var(--muted);font-size:.8rem">Pedido</span><strong style="font-size:.95rem">' + esc(order.id) + '</strong></div>' +
-        '</div>' +
-        (hasGateway ? '<button class="btn btn-primary btn-block" data-gateway style="margin-bottom:10px">Gerar cobrança automática</button>' : '') +
-        '<button class="btn btn-ghost btn-block" data-confirm-order>Já paguei · enviar pedido</button>' +
+        '<div class="step-title">Pague com PIX</div><p class="step-sub">' +
+          (g.configured ? 'A cobrança é gerada e confirmada automaticamente pelo gateway da loja.' : 'Escaneie o QR Code ou copie o código no app do seu banco.') +
+        '</p>' +
+        (payload || qr
+          ? '<div class="pix-box">' + (qr || '') +
+            (payload ? '<div class="copybox"><code id="pixCode">' + esc(payload) + '</code><button class="btn btn-ghost btn-sm" data-copy-pix>Copiar</button></div>' : '') +
+            '<div class="timer">Valor: <b>' + money(order.total) + '</b>' + (S.payment && S.payment.pixExpiration ? ' · expira em <b id="pixTimer">' + pad(S.payment.pixExpiration) + ':00</b>' : '') + '</div>' +
+            '<div class="line total" style="justify-content:center;gap:10px"><span style="color:var(--muted);font-size:.8rem">Pedido</span><strong style="font-size:.95rem">' + esc(order.id) + '</strong></div>' +
+            '</div>'
+          : '<div class="co-review" style="margin-bottom:12px"><div class="line" style="display:block;line-height:1.6"><strong>Pagamento combinado com a loja</strong><br><span style="color:var(--muted);font-size:.82rem">A loja ainda não cadastrou a chave PIX. ' + (wa ? 'Fale no WhatsApp para receber os dados.' : 'Entre em contato para finalizar o pagamento.') + '</span></div>' +
+            (wa ? '<a class="btn btn-ghost btn-sm" style="margin-top:10px" href="' + esc(waHref(orderWhatsAppText(order))) + '" target="_blank" rel="noopener">Falar com a loja</a>' : '') +
+            '</div>') +
+        (link ? '<a class="btn btn-primary btn-block gateway-open" href="' + esc(link) + '" target="_blank" rel="noopener">Abrir checkout do gateway</a>' : '') +
+        (g.configured ? '<button class="btn btn-ghost btn-block" data-gateway style="margin:10px 0">' + (gp ? 'Gerar nova cobrança' : 'Gerar cobrança automática') + '</button>' : '') +
+        '<button class="btn btn-primary btn-block" data-confirm-order>Já paguei · enviar pedido</button>' +
         '<button class="btn btn-block" style="margin-top:8px;color:var(--muted);font-size:.8rem" data-back-step>Voltar</button>' +
         '<div class="trustline"><span>⚡ Confirmação após o pagamento</span><span>🔒 PIX oficial</span></div>';
       startTimer();
@@ -725,8 +959,9 @@ function storefrontRuntime() {
         '<h3 style="font-size:1.5rem">' + esc((S.checkout && S.checkout.successTitle) || 'Pedido recebido!') + '</h3>' +
         '<p class="step-sub">' + esc((S.checkout && S.checkout.successText) || 'Obrigado pela compra. Enviamos os próximos passos para o seu WhatsApp.') + '</p>' +
         '<div class="order-id">Pedido ' + esc(order.id || '') + '</div>' +
+        (order.pix && manualChatMode() ? '<details style="margin:0 0 16px;text-align:left"><summary style="cursor:pointer;font-size:.78rem;color:var(--muted);text-align:center">Ver código PIX do pedido</summary><div class="copybox" style="margin-top:8px"><code>' + esc(order.pix) + '</code><button class="btn btn-ghost btn-sm" data-copy-key="' + esc(order.pix) + '">Copiar</button></div></details>' : '') +
         (downloads.length ? '<div class="dl-list">' + downloads.map((d) => '<a href="' + esc(d.fileUrl) + '" target="_blank" rel="noopener"><span>Baixar ' + esc(d.name) + '</span><span>↓</span></a>').join('') + '</div>' : '') +
-        (S.contact && S.contact.whatsapp ? '<a class="btn btn-primary btn-block" style="margin-top:6px" target="_blank" rel="noopener" href="' + esc(waHref(orderWhatsAppText(order))) + '">Enviar comprovante no WhatsApp</a>' : '') +
+        (S.contact && S.contact.whatsapp ? '<a class="btn btn-primary btn-block" style="margin-top:6px" target="_blank" rel="noopener" href="' + esc(waHref(manualChatMode() ? chatWhatsAppText(order) : orderWhatsAppText(order))) + '">Enviar comprovante no WhatsApp</a>' : '') +
         '<button class="btn btn-block" style="margin-top:10px;color:var(--muted);font-size:.82rem" data-close-cart>Continuar comprando</button>' +
         '</div>';
     }
@@ -773,7 +1008,7 @@ function storefrontRuntime() {
         address: buyer.address || '',
         notes: buyer.notes || '',
       },
-      items: items.map(({ fileUrl, ...rest }) => rest),
+      items: items.map((it) => ({ ...it })),
       subtotal: cartSubtotal(),
       shipping: shippingCost(),
       discount: discount(),
@@ -793,6 +1028,13 @@ function storefrontRuntime() {
     state.buyer = buyer;
     state.order = buildOrder(buyer);
     state.pendingOrder = state.order;
+    state.chat = [];
+    state.chatRevealed = false;
+    state.chatReplied = false;
+    state.gatewayPayment = null;
+    state.pixDeadline = 0;
+    if (manualChatMode()) seedChat(state.order);
+    persistOrder(state.order, 'order.created');
     state.step = 2;
     renderCheckout();
   }
@@ -804,16 +1046,18 @@ function storefrontRuntime() {
     if (!el) return;
     const minutes = Number(S.payment && S.payment.pixExpiration) || 0;
     if (!minutes) return;
-    let left = minutes * 60;
-    timerHandle = setInterval(() => {
-      left--;
+    if (!state.pixDeadline) state.pixDeadline = Date.now() + minutes * 60000;
+    const tick = () => {
+      const left = Math.max(0, Math.round((state.pixDeadline - Date.now()) / 1000));
       if (left <= 0) {
         clearInterval(timerHandle);
-        el.textContent = 'expirado';
+        if (el.isConnected) el.textContent = 'expirado';
         return;
       }
-      el.textContent = pad(Math.floor(left / 60)) + ':' + pad(left % 60);
-    }, 1000);
+      if (el.isConnected) el.textContent = pad(Math.floor(left / 60)) + ':' + pad(left % 60);
+    };
+    tick();
+    timerHandle = setInterval(tick, 1000);
   }
 
   function orderWhatsAppText(order) {
@@ -821,22 +1065,26 @@ function storefrontRuntime() {
     return 'Olá! Acabei de fazer o pedido ' + order.id + ' na ' + S.name + '.\n\n' + items + '\n\nTotal: ' + money(order.total) + '\nPagamento: PIX' + (order.pix ? '\n\nPIX copia e cola:\n' + order.pix : '');
   }
 
-  function persistOrder(order) {
+  function persistOrder(order, event) {
+    const evt = event || 'order.updated';
     try {
       const all = JSON.parse(localStorage.getItem(ORDER_KEY) || '[]');
       const list = Array.isArray(all) ? all : [];
-      list.unshift(order);
+      const snapshot = JSON.parse(JSON.stringify(order));
+      const idx = list.findIndex((o) => o && o.id === order.id);
+      if (idx >= 0) list[idx] = snapshot;
+      else list.unshift(snapshot);
       localStorage.setItem(ORDER_KEY, JSON.stringify(list.slice(0, 500)));
     } catch (err) { /* storage cheio */ }
 
     if (PREVIEW && window.parent && window.parent !== window) {
-      try { window.parent.postMessage({ type: 'oc:order', order }, '*'); } catch (err) { /* ignore */ }
+      try { window.parent.postMessage({ type: 'oc:order', order, event: evt }, '*'); } catch (err) { /* ignore */ }
     }
 
     // webhook opcional
     const url = S.payment && S.payment.webhookUrl;
     if (url) {
-      const body = JSON.stringify({ event: 'order.created', storeId: S.id, order });
+      const body = JSON.stringify({ event: evt, storeId: S.id, storeName: S.name, order });
       fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
         .catch(() => {
           try {
@@ -846,45 +1094,106 @@ function storefrontRuntime() {
     }
   }
 
+  function pickValue(source, keys) {
+    for (const key of keys) {
+      const value = source && source[key];
+      if (value != null && value !== '') return value;
+    }
+    return '';
+  }
+
+  function normalizeQr(value) {
+    const v = String(value || '').trim();
+    if (!v) return '';
+    if (/^data:image\//i.test(v) || /^https?:\/\//i.test(v)) return v;
+    if (v.startsWith('000201')) return '';
+    if (/^[A-Za-z0-9+/=\r\n]+$/.test(v) && v.length > 120) return 'data:image/png;base64,' + v.replace(/\s+/g, '');
+    return '';
+  }
+
+  function mapGatewayPayment(payment) {
+    const payload = String(pickValue(payment, ['payload', 'pix_copy_paste', 'pixCopiaECola', 'pix_copia_e_cola', 'brCode', 'brcode', 'emv', 'code']) || '');
+    const qr = normalizeQr(pickValue(payment, ['qr', 'qrCode', 'qr_code', 'qr_code_base64', 'encodedImage', 'imagemQrcode', 'qrcode']));
+    const url = String(pickValue(payment, ['url', 'ticket_url', 'init_point', 'checkoutUrl', 'checkout_url', 'invoiceUrl', 'link', 'paymentLink']) || '');
+    return { payload, qr, url };
+  }
+
   async function apiCharge(order) {
     const g = (S.payment && S.payment.gateway) || {};
     if (!g.provider || g.provider === 'manual') return null;
+
     if (g.endpoint) {
-      const res = await fetch(g.endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: S.id, store: { name: S.name }, order, provider: g.provider, env: g.env }),
-      });
-      if (!res.ok) throw new Error('Falha ao criar cobrança (' + res.status + ')');
-      const data = await res.json();
-      const payment = data.payment || data;
-      return { payload: payment.payload || payment.pix_copy_paste || '', qr: payment.qr || payment.qrCode || payment.qr_code_base64 || '', url: payment.url || payment.ticket_url || '' };
+      let res;
+      try {
+        res = await fetch(g.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: g.provider,
+            storeId: S.id,
+            store: { name: S.name, slug: S.slug || '' },
+            order,
+            env: g.env || 'sandbox',
+          }),
+        });
+      } catch (err) {
+        throw new Error('Não foi possível conectar ao endpoint do gateway. Verifique a URL e o CORS.');
+      }
+      const raw = await res.text();
+      let data = {};
+      try { data = raw ? JSON.parse(raw) : {}; } catch (err) { data = {}; }
+      if (!res.ok) {
+        const firstError = Array.isArray(data.errors) ? data.errors[0] : null;
+        const message = data.message || data.error || data.detail || (firstError && (firstError.description || firstError.message)) || ('HTTP ' + res.status);
+        throw new Error(String(message));
+      }
+      const payment = data.payment || data.data || data.pix || data;
+      const mapped = mapGatewayPayment(payment);
+      if (!mapped.payload && !mapped.qr && !mapped.url) throw new Error('O gateway respondeu sem QR Code ou link de pagamento.');
+      return mapped;
     }
+
     if (g.provider === 'mercadopago' && g.apiKey) {
-      const res = await fetch('https://api.mercadopago.com/v1/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + g.apiKey, 'X-Idempotency-Key': order.id },
-        body: JSON.stringify({
-          transaction_amount: Number((order.total / 100).toFixed(2)),
-          description: order.description || ('Pedido ' + order.id),
-          payment_method_id: 'pix',
-          external_reference: order.id,
-          payer: { email: order.customer.email || 'cliente@' + (location.hostname || 'loja.com'), first_name: order.customer.name.split(' ')[0] },
-        }),
-      });
-      if (!res.ok) throw new Error('Mercado Pago: ' + res.status);
-      const data = await res.json();
-      const tx = data.point_of_interaction && data.point_of_interaction.transaction_data;
-      return { payload: (tx && tx.qr_code) || '', qr: (tx && tx.qr_code_base64) ? 'data:image/png;base64,' + tx.qr_code_base64 : '', url: (tx && tx.ticket_url) || '' };
+      let res;
+      try {
+        res = await fetch('https://api.mercadopago.com/v1/payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + g.apiKey, 'X-Idempotency-Key': order.id },
+          body: JSON.stringify({
+            transaction_amount: Number((order.total / 100).toFixed(2)),
+            description: order.description || ('Pedido ' + order.id),
+            payment_method_id: 'pix',
+            external_reference: order.id,
+            payer: { email: order.customer.email || 'cliente@' + (location.hostname || 'loja.com'), first_name: String(order.customer.name || 'Cliente').split(' ')[0] },
+          }),
+        });
+      } catch (err) {
+        throw new Error('O Mercado Pago bloqueou a chamada direta (CORS). Use o endpoint serverless em Pagamentos.');
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const cause = Array.isArray(data.cause) && data.cause[0] ? data.cause[0].description || data.cause[0].code : '';
+        throw new Error('Mercado Pago: ' + (data.message || cause || res.status));
+      }
+      const tx = (data.point_of_interaction && data.point_of_interaction.transaction_data) || {};
+      return {
+        payload: tx.qr_code || '',
+        qr: tx.qr_code_base64 ? 'data:image/png;base64,' + tx.qr_code_base64 : '',
+        url: tx.ticket_url || '',
+      };
     }
-    return null;
+
+    throw new Error('Configure o endpoint do gateway em Pagamentos para usar ' + (g.provider || 'esta opção') + '.');
   }
 
   function confirmOrder() {
     const order = state.order;
     if (!order) return;
     order.status = 'pendente';
-    persistOrder(order);
+    order.payment = 'pix';
+    order.updatedAt = new Date().toISOString();
+    if (state.gatewayPayment) order.gateway = { provider: gatewayInfo().provider, url: state.gatewayPayment.url || '', qr: state.gatewayPayment.qr || '' };
+    persistOrder(order, 'order.updated');
     try {
       const value = order.total / 100;
       const items = (order.items || []).map((i) => ({ item_id: i.id, item_name: i.name, price: i.price / 100, quantity: i.qty }));
@@ -964,25 +1273,63 @@ function storefrontRuntime() {
         else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
         return;
       }
+      if (t.closest('[data-reveal-pix]')) {
+        ev.preventDefault();
+        state.chatRevealed = true;
+        renderCheckout();
+        return;
+      }
+      const copyKey = t.closest('[data-copy-key]');
+      if (copyKey) {
+        ev.preventDefault();
+        const value = copyKey.getAttribute('data-copy-key') || '';
+        const done = () => toast('Chave PIX copiada');
+        if (navigator.clipboard) navigator.clipboard.writeText(value).then(done).catch(done);
+        else { const ta = document.createElement('textarea'); ta.value = value; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+        return;
+      }
+      const quick = t.closest('[data-quick-chat]');
+      if (quick) { ev.preventDefault(); sendChatMessage(quick.getAttribute('data-quick-chat')); return; }
       if (t.closest('[data-confirm-order]')) { ev.preventDefault(); confirmOrder(); return; }
       if (t.closest('[data-back-step]')) { ev.preventDefault(); goStep(1); return; }
       if (t.closest('[data-gateway]')) {
         ev.preventDefault();
         const btn = t.closest('[data-gateway]');
+        const original = btn.textContent;
         btn.disabled = true;
         btn.textContent = 'Gerando cobrança…';
         apiCharge(state.order).then((res) => {
-          if (!res || (!res.payload && !res.qr && !res.url)) throw new Error('Gateway não retornou dados');
-          if (res.payload) { state.order.pix = res.payload; }
-          if (res.url) { window.open(res.url, '_blank'); }
+          if (!res || (!res.payload && !res.qr && !res.url)) throw new Error('O gateway não retornou dados de pagamento.');
+          state.gatewayPayment = res;
+          if (res.payload) state.order.pix = res.payload;
+          state.order.status = 'pendente';
+          state.order.payment = 'pix';
+          state.order.gateway = { provider: gatewayInfo().provider, url: res.url || '', qr: res.qr || '' };
+          state.order.updatedAt = new Date().toISOString();
+          persistOrder(state.order, 'order.updated');
           toast('Cobrança automática gerada');
-          state.step = 2;
           renderCheckout();
         }).catch((err) => {
-          toast('Não foi possível gerar automaticamente. Use o PIX manual.');
+          toast(err && err.message ? err.message : 'Não foi possível gerar a cobrança.');
           btn.disabled = false;
-          btn.textContent = 'Gerar cobrança automática';
+          btn.textContent = original;
         });
+        return;
+      }
+      if (t.closest('[data-share]')) {
+        ev.preventDefault();
+        const id = t.closest('[data-share]').getAttribute('data-share');
+        const p = PRODUCTS.find((x) => x.id === id);
+        const url = location.origin + location.pathname + '#produto=' + encodeURIComponent(id);
+        const title = p ? p.name + ' · ' + S.name : S.name;
+        if (navigator.share) navigator.share({ title, text: p ? p.short || p.name : S.name, url }).catch(() => {});
+        else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link do produto copiado'));
+        else toast(url);
+        return;
+      }
+      if (t.closest('#toTop')) {
+        ev.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       const thumb = t.closest('[data-thumb]');
@@ -999,6 +1346,26 @@ function storefrontRuntime() {
         return;
       }
     });
+
+    document.addEventListener('submit', (ev) => {
+      const form = ev.target;
+      if (form && form.id === 'chatForm') {
+        ev.preventDefault();
+        const input = $('#chatInput');
+        sendChatMessage(input ? input.value : '');
+      }
+    });
+
+    const bar = $('#scrollBar');
+    const topBtn = $('#toTop');
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0;
+      if (bar) bar.style.width = pct + '%';
+      if (topBtn) topBtn.classList.toggle('show', window.scrollY > 480);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
 
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape') closeOverlays();
@@ -1188,7 +1555,7 @@ export async function buildStoreHTML(store, opts = {}) {
       <div class="card-media">
         ${p.badge ? `<span class="badge ${p.badge.toLowerCase().includes('mais') || p.badge.toLowerCase().includes('novo') ? 'hot' : ''}">${esc(p.badge)}</span>` : ''}
         <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" width="800" height="920">
-        ${soldOut ? '<div class="soldout">Esgotado</div>' : ''}
+        ${soldOut ? '<div class="soldout">Esgotado</div>' : `<button class="card-quick" data-add="${esc(p.id)}" aria-label="Adicionar ${esc(p.name)} ao carrinho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`}
       </div>
       <div class="card-body">
         <span class="card-cat">${esc(p.category || 'Produto')}</span>
@@ -1230,6 +1597,17 @@ export async function buildStoreHTML(store, opts = {}) {
 
   const whatsappHref = wa ? `https://wa.me/${(onlyDigits(wa).startsWith('55') ? onlyDigits(wa) : '55' + onlyDigits(wa))}?text=${encodeURIComponent('Olá! Vim pelo site da ' + s.name + ' e quero saber mais.')}` : '';
 
+  const announceText = s.announcement?.enabled ? String(s.announcement.text || '').trim() : '';
+  const announceHtml = announceText
+    ? announceText.length > 70
+      ? `<div class="announce marquee" aria-label="${esc(announceText)}"><div class="announce-track"><span>${esc(announceText)}</span><span aria-hidden="true">${esc(announceText)}</span></div></div>`
+      : `<div class="announce">${esc(announceText)}</div>`
+    : '';
+  const fabHtml = `<div class="fab-stack">
+    ${whatsappHref ? `<a class="fab fab-wa" href="${esc(whatsappHref)}" target="_blank" rel="noopener" aria-label="Falar no WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.3-.7.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.7l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4Z"/><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg><span>Fale conosco</span></a>` : ''}
+    <button class="fab fab-top" id="toTop" aria-label="Voltar ao topo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+  </div>`;
+
   const navLinks = [
     products.length ? '<a href="#catalogo">Produtos</a>' : '',
     s.about?.enabled ? '<a href="#sobre">Sobre</a>' : '',
@@ -1270,8 +1648,9 @@ ${analyticsHead(s)}
 ${customHead}
 </head>
 <body class="cards-${esc(cardStyle)}">
+<div class="scroll-bar" id="scrollBar" aria-hidden="true"></div>
 <a class="skip" href="#catalogo">Ir para os produtos</a>
-${s.announcement?.enabled && s.announcement.text ? `<div class="announce">${esc(s.announcement.text)}</div>` : ''}
+${announceHtml}
 <header class="nav">
   <div class="wrap nav-in">
     <a class="brand" href="#" aria-label="${esc(s.name)}">${logo}</a>
@@ -1413,6 +1792,8 @@ ${s.announcement?.enabled && s.announcement.text ? `<div class="announce">${esc(
     </div>
   </div>
 </footer>
+
+${fabHtml}
 
 <div class="overlay" id="overlay"></div>
 

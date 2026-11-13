@@ -153,9 +153,12 @@ export function renderDashboard(root, storeId, tab = 'inicio') {
   // ordem (prévia)
   window.onmessage = (ev) => {
     if (ev.data && ev.data.type === 'oc:order' && ev.data.order) {
-      addOrder(ev.data.order);
+      const order = ev.data.order;
+      const exists = listOrders().some((o) => o.id === order.id);
+      if (exists) updateOrder(order.id, order);
+      else addOrder(order);
       updateSidebarCounts();
-      toast(`Novo pedido de ${ev.data.order.customer?.name || 'cliente'} — ${brl(ev.data.order.total)}`);
+      toast(exists ? `Pedido ${order.id} atualizado` : `Novo pedido de ${order.customer?.name || 'cliente'} — ${brl(order.total)}`);
       if (activeTab === 'inicio' || activeTab === 'pedidos') renderTab();
     }
   };
