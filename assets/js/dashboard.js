@@ -291,7 +291,7 @@ function renderChat(pane, store, api) {
   if (!messages.length) {
     messages = [{
       role: 'assistant',
-      content: `Olá! Eu sou o assistente do **OpenCommerce**. Já montei a base da loja **${store.name}**.\n\nVocê pode pedir mudanças em português, por exemplo:\n- “deixe o visual mais premium e escuro”\n- “crie 4 produtos de skincare entre R$ 79 e R$ 199”\n- “escreva um FAQ com 6 perguntas”\n- “mude o título do hero para algo mais direto”`,
+      content: `Olá! Eu sou o assistente do **OpenCommerce**. Já montei a base da loja **${store.name}**.\n\nEu consigo mudar **qualquer coisa** aqui: textos, produtos, preços, layout, cores, fontes e seções. Você pode pedir em português, por exemplo:\n- “deixe o visual mais premium e escuro”\n- “faça um estilo parecido com o site da Apple”\n- “crie 4 produtos de skincare entre R$ 79 e R$ 199”\n- “mude o layout do hero e o tamanho dos cards”\n\nSe quiser copiar o estilo de um site, use o campo **Site de referência** abaixo.`,
       ts: Date.now(),
       suggestions: ['Melhorar os textos', 'Criar mais 4 produtos', 'Trocar o visual', 'Criar uma oferta'],
     }];
@@ -331,10 +331,17 @@ ${ai ? '' : `<div class="alert alert-warn mb-16">${icon('alert', 16)}<span><b>Su
         ['copy', 'Melhorar textos', 'Reescreva os textos da loja (hero, benefícios, sobre, FAQ) com copy mais persuasivo e específico, mantendo o posicionamento.'],
         ['box', 'Criar produtos', 'Adicione mais 4 produtos coerentes com o nicho. Mantenha os existentes e devolva a lista completa.'],
         ['palette', 'Trocar visual', 'Proponha um visual diferente e mais premium: ajuste theme, cores e fontes mantendo os textos.'],
+        ['wand', 'Igual a um site', 'Deixe o visual da loja inspirado no site: '],
+        ['layers', 'Mudar layout', 'Mude o layout da loja: hero, ordem e estilo das seções, colunas do catálogo e cantos. Mantenha os textos.'],
         ['shield', 'Reforçar confiança', 'Melhore depoimentos, FAQ e benefícios para reduzir objeções de compra.'],
         ['search', 'SEO', 'Otimize título, descrição e keywords da loja.'],
         ['tag', 'Criar oferta', 'Crie uma oferta com cupom, badges e announcement de urgência.'],
       ].map(([ic, label, prompt]) => `<button class="quick-chip" data-quick="${esc(prompt)}">${icon(ic, 13)} ${label}</button>`).join('')}
+    </div>
+    <div class="ref-row">
+      <span class="ref-ico">${icon('wand', 14)}</span>
+      <input id="refSite" placeholder="Site de referência: link ou descrição do estilo (ex.: escuro, tipografia grande, cantos retos)" ${ai ? '' : 'disabled'}>
+      <button class="btn btn-ghost btn-sm" id="refSend" ${ai ? '' : 'disabled'}>Copiar estilo</button>
     </div>
     <div class="compose-box">
       <textarea id="chatInput" rows="1" placeholder="${ai ? 'Ex.: deixe o visual mais premium e adicione 3 produtos de skincare…' : 'Conecte sua IA para conversar…'}" ${ai ? '' : 'disabled'}></textarea>
@@ -368,6 +375,24 @@ ${ai ? '' : `<div class="alert alert-warn mb-16">${icon('alert', 16)}<span><b>Su
       input.focus();
       input.dispatchEvent(new Event('input'));
     });
+  });
+
+  // referência visual: link de site ou descrição de estilo
+  const refInput = pane.querySelector('#refSite');
+  const sendReference = () => {
+    if (!ai) { toast('Conecte sua IA para usar este recurso.', 'error'); return; }
+    const ref = (refInput?.value || '').trim();
+    if (!ref) { toast('Informe o site ou descreva o estilo que você quer.', 'error'); refInput?.focus(); return; }
+    input.value = `Quero que o visual desta loja fique inspirado em: ${ref}.
+Analise o estilo (paleta, tipografia, cantos, densidade, estilo do hero e dos cards) e aplique no tema da loja. Mantenha os textos e produtos, a menos que eu peça o contrário. Explique em uma frase o que você interpretou.`;
+    refInput.value = '';
+    input.focus();
+    input.dispatchEvent(new Event('input'));
+    send();
+  };
+  pane.querySelector('#refSend')?.addEventListener('click', sendReference);
+  refInput?.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); sendReference(); }
   });
 
   scroll?.addEventListener('click', (ev) => {

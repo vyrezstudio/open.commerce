@@ -6,7 +6,7 @@ import {
 import {
   icon, toast, toastError, openModal, confirmDialog, toggle, badge, spinner, emptyState, mdLite, copyWithToast,
 } from './ui.js';
-import { THEMES, FONTS, GATEWAYS, generatedCover } from './schema.js';
+import { THEMES, TEMPLATES, PALETTES, FONTS, GATEWAYS, generatedCover } from './schema.js';
 import { listOrders, updateOrder, deleteOrder, saveStore, duplicateStore } from './db.js';
 import { buildPixPayload, qrSvg, validatePixKey, detectPixKeyType, formatPixKey, normalizePixKey } from './pix.js';
 import { buildStoreHTML } from './storefront.js';
@@ -498,7 +498,46 @@ ${pageHead('Aparência', 'Mude cores, fontes, textos e seções. A prévia ao la
   `<button class="btn btn-ghost btn-sm" data-copy-store>${icon('copy', 14)} Duplicar loja</button>`)}
 
 <div class="card-block">
-  <div class="block-head"><span class="bi">${icon('palette', 16)}</span><div><h3>Tema</h3><p>Um ponto de partida pronto. Depois refine as cores.</p></div></div>
+  <div class="block-head">
+    <span class="bi">${icon('sparkles', 16)}</span>
+    <div><h3>Modelos prontos</h3><p>Um clique aplica cores, fontes, cantos e composição. Depois é só ajustar o que quiser.</p></div>
+    <div class="right"><button class="btn btn-ghost btn-sm" data-random-template>${icon('refresh', 14)} Surpreenda-me</button></div>
+  </div>
+  <div class="template-grid">
+    ${TEMPLATES.map((tpl) => {
+      const th = tpl.theme;
+      const on = t.id === th.id;
+      return `<button class="template-card ${on ? 'on' : ''}" data-template="${tpl.id}">
+        <div class="tpl-prev" style="background:${th.bg};color:${th.text};--tp:${th.primary};--ta:${th.accent};--ts:${th.surface2}">
+          <div class="tpl-nav"><i style="background:${th.primary}"></i><span></span><span></span><em style="background:${th.text}"></em></div>
+          <div class="tpl-hero">
+            <div><b style="background:${th.text}"></b><b class="short" style="background:${th.text}"></b><span style="background:${th.muted}"></span><i style="background:${th.primary}"></i></div>
+            <div class="tpl-art" style="background:linear-gradient(135deg,${th.primary},${th.accent})"></div>
+          </div>
+          <div class="tpl-cards"><i></i><i></i><i></i></div>
+        </div>
+        <div class="tpl-info">
+          <div><b>${esc(tpl.name)}</b><small>${esc(tpl.mood)}</small></div>
+          <span>${esc(tpl.tagline)}</span>
+          <div class="tpl-swatches"><i style="background:${th.bg}"></i><i style="background:${th.primary}"></i><i style="background:${th.accent}"></i><i style="background:${th.surface2}"></i></div>
+        </div>
+      </button>`;
+    }).join('')}
+  </div>
+</div>
+
+<div class="card-block">
+  <div class="block-head"><span class="bi">${icon('palette', 16)}</span><div><h3>Paletas rápidas</h3><p>Troque só as cores, mantendo as fontes e o layout atuais.</p></div></div>
+  <div class="palette-grid">
+    ${PALETTES.map((pal) => `<button class="palette-chip" data-palette="${pal.id}" style="--p:${pal.primary};--a:${pal.accent};--b:${pal.bg};--t:${pal.text}" title="Aplicar paleta ${esc(pal.name)}">
+      <span class="pal-dots"><i></i><i></i><i></i></span>
+      <b>${esc(pal.name)}</b>
+    </button>`).join('')}
+  </div>
+</div>
+
+<div class="card-block">
+  <div class="block-head"><span class="bi">${icon('layers', 16)}</span><div><h3>Temas base</h3><p>Comece por um tema e refine as cores abaixo.</p></div></div>
   <div class="theme-grid">
     ${THEMES.map((th) => `<button class="theme-card ${t.id === th.id ? 'on' : ''}" data-theme="${th.id}">
       <div class="theme-prev" style="background:${th.bg};color:${th.text}">
@@ -534,8 +573,13 @@ ${pageHead('Aparência', 'Mude cores, fontes, textos e seções. A prévia ao la
     ${colorField('Cor de destaque', 'theme.accent', t.accent)}
     ${colorField('Fundo', 'theme.bg', t.bg)}
     ${colorField('Superfície (cards)', 'theme.surface', t.surface)}
+    ${colorField('Superfície 2 (detalhes)', 'theme.surface2', t.surface2)}
     ${colorField('Texto', 'theme.text', t.text)}
     ${colorField('Texto suave', 'theme.muted', t.muted)}
+    <label class="field"><span class="field-label">Linhas e bordas</span>
+      <input class="input" data-bind="theme.line" value="${esc(t.line || 'rgba(255,255,255,.09)')}" placeholder="rgba(255,255,255,.09)">
+      <span class="hint">Aceita rgba(), hex ou nome de cor.</span>
+    </label>
   </div>
   <div class="grid-2 mt-12">
     <label class="field"><span class="field-label">Arredondamento: <b data-label="theme.radius">${t.radius || 20}</b>px</span>
@@ -699,7 +743,7 @@ ${pageHead('Aparência', 'Mude cores, fontes, textos e seções. A prévia ao la
   </div>
 </details>`;
 
-  // temas
+  // temas base
   pane.querySelectorAll('[data-theme]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const theme = THEMES.find((x) => x.id === btn.getAttribute('data-theme'));
@@ -711,7 +755,53 @@ ${pageHead('Aparência', 'Mude cores, fontes, textos e seções. A prévia ao la
     });
   });
 
-  bindLive(pane, api);
+  // modelos prontos (visual completo em um clique)
+  pane.querySelectorAll('[data-template]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tpl = TEMPLATES.find((x) => x.id === btn.getAttribute('data-template'));
+      if (!tpl) return;
+      const next = clone(api.store);
+      next.theme = { ...tpl.theme };
+      api.save(next, { rerender: true });
+      toast(`Modelo ${tpl.name} aplicado. Agora ajuste as cores se quiser.`);
+    });
+  });
+
+  // paletas rápidas (somente cores)
+  pane.querySelectorAll('[data-palette]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const pal = PALETTES.find((x) => x.id === btn.getAttribute('data-palette'));
+      if (!pal) return;
+      const next = clone(api.store);
+      next.theme = { ...next.theme, ...pal, id: next.theme?.id || pal.id };
+      api.save(next, { rerender: true });
+      toast(`Paleta ${pal.name} aplicada.`);
+    });
+  });
+
+  // surpreenda-me: escolhe um modelo diferente do atual
+  pane.querySelector('[data-random-template]')?.addEventListener('click', () => {
+    const current = api.store.theme?.id;
+    const options = TEMPLATES.filter((x) => x.theme.id !== current);
+    const tpl = options[Math.floor(Math.random() * options.length)];
+    if (!tpl) return;
+    const next = clone(api.store);
+    next.theme = { ...tpl.theme };
+    api.save(next, { rerender: true });
+    toast(`Novo visual: ${tpl.name}.`);
+  });
+
+  bindLive(pane, api, (saved, path) => {
+    // mantém o "soft" da marca coerente com a cor principal
+    if (path === 'theme.primary' || path === 'theme.accent') {
+      const hex = saved.theme?.primary;
+      const next = clone(api.store);
+      next.theme.primarySoft = hexToRgba(next.theme.primary, 0.14);
+      api.save(next);
+      const soft = pane.querySelector('[data-color-text="theme.primarySoft"]');
+      if (soft) soft.value = next.theme.primarySoft;
+    }
+  });
   bindImages(pane, api);
   bindClearImages(pane, api);
 
@@ -767,6 +857,15 @@ function toHex(value) {
   if (/^#[0-9a-f]{6}$/i.test(value)) return value;
   if (/^#[0-9a-f]{3}$/i.test(value)) return '#' + value.slice(1).split('').map((c) => c + c).join('');
   return '';
+}
+
+function hexToRgba(value, alpha = 0.14) {
+  const hex = toHex(value);
+  if (!hex) return `rgba(255,92,53,${alpha})`;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -834,21 +933,81 @@ ${pageHead('Pagamentos', 'Receba por PIX na sua conta. Manual por padrão, autom
         <option value="sandbox" ${gateway.env === 'sandbox' ? 'selected' : ''}>Teste (sandbox)</option>
         <option value="prod" ${gateway.env === 'prod' ? 'selected' : ''}>Produção</option>
       </select><span class="hint">Use sandbox até validar o fluxo completo.</span></label>
-      <label class="field"><span class="field-label">Endpoint do gateway <b>*</b></span><input data-bind="payment.gateway.endpoint" value="${esc(gateway.endpoint || '')}" placeholder="https://sua-api.vercel.app/api/gateway"><span class="hint">Sua função serverless cria a cobrança e devolve o QR. O modelo pronto está em <code>serverless/api/gateway.js</code>.</span></label>
-      ${gateway.provider === 'mercadopago' ? `<label class="field" style="grid-column:1/-1"><span class="field-label">Access token do Mercado Pago (modo direto)</span><input type="password" data-bind="payment.gateway.apiKey" value="${esc(gateway.apiKey || '')}" placeholder="APP_USR-..."><span class="hint">Opcional. Só funciona se o navegador permitir CORS. Para produção, prefira o endpoint.</span></label>` : ''}
+      <label class="field"><span class="field-label">Endpoint do gateway <b>*</b></span><input data-bind="payment.gateway.endpoint" value="${esc(gateway.endpoint || BRAND.gatewayUrl || '')}" placeholder="https://sua-api.vercel.app/api/gateway"><span class="hint">Sua função serverless cria a cobrança e devolve o QR. Modelo pronto em <code>serverless/api/gateway.js</code>.</span></label>
     </div>
 
-    <div class="gateway-hint">
+    ${gateway.provider === 'custom' ? `
+      <div class="gateway-hint mt-12">
+        <span class="bi">${icon('code', 16)}</span>
+        <div>
+          <b>Conectar a sua própria API</b>
+          <p>Publique <code>serverless/api/gateway.js</code> na Vercel e configure <code>CUSTOM_GATEWAY_URL</code> (endpoint da sua API) e <code>CUSTOM_GATEWAY_TOKEN</code>. O checkout envia <code>{ provider, storeId, store, order, env }</code> e espera <code>{ payment: { payload, qr, url, transactionId } }</code>.</p>
+        </div>
+      </div>` : ''}
+
+    <div class="divider"></div>
+    <div class="block-head"><span class="bi">${icon('link', 16)}</span><div><h3>Webhook de confirmação</h3><p>O gateway avisa a loja quando o PIX for pago.</p></div></div>
+    <label class="field"><span class="field-label">URL do webhook (cadastre no painel do gateway)</span>
+      <div class="input-group">
+        <input id="gatewayWebhook" data-bind="payment.gateway.webhookUrl" value="${esc(gateway.webhookUrl || suggestWebhook(gateway))}" placeholder="https://seu-projeto.vercel.app/api/webhook?secret=SEU_SEGREDO">
+        <button class="btn btn-ghost btn-sm" data-copy-webhook>${icon('copy', 13)} Copiar</button>
+      </div>
+      <span class="hint">Use o mesmo segredo em <code>WEBHOOK_SECRET</code>. O webhook valida o segredo, normaliza o evento e encaminha para o seu sistema.</span>
+    </label>
+    <div class="flex gap-8 mt-12" style="align-items:center;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" data-test-gateway>${icon('bolt', 14)} Testar conexão</button>
+      <span class="tiny dim" id="gwTestResult">Verifica o endpoint de cobrança e o webhook publicados.</span>
+    </div>
+
+    <div class="gateway-hint mt-12">
       <span class="bi">${icon('shield', 16)}</span>
       <div>
         <b>${gateway.endpoint ? 'Endpoint configurado' : 'Falta configurar o endpoint'}</b>
-        <p>${gateway.endpoint ? 'O checkout vai chamar a sua função e exibir o QR/checkout retornado pelo gateway.' : 'Asaas, EFI, Pagar.me e Mercado Pago exigem segredo no servidor. Publique o modelo <code>serverless/api/gateway.js</code> no Vercel/Cloudflare e cole a URL acima.'}</p>
+        <p>${gateway.endpoint ? 'O checkout vai chamar a sua função e exibir o QR/checkout retornado pelo gateway.' : 'Asaas, EFI, Pagar.me, Mercado Pago e API própria exigem segredo no servidor. Publique o modelo <code>serverless/api/gateway.js</code> e cole a URL acima.'}</p>
         ${GATEWAYS.find((g) => g.id === gateway.provider)?.docs ? `<a href="${esc(GATEWAYS.find((g) => g.id === gateway.provider).docs)}" target="_blank" rel="noopener">Documentação do ${esc(GATEWAYS.find((g) => g.id === gateway.provider).label)} ${icon('external', 12)}</a>` : ''}
       </div>
     </div>
 
-    <div class="alert alert-warn mt-12">${icon('alert', 16)}<span><b>Chaves ficam no servidor.</b> Nunca coloque a chave secreta do gateway no código da loja. O endpoint recebe <code>{ provider, storeId, order, env }</code> e devolve <code>{ payment: { payload, qr, url } }</code>.</span></div>
+    <div class="alert alert-warn mt-12">${icon('alert', 16)}<span><b>Chaves ficam no servidor.</b> Nunca coloque a chave secreta do gateway no código da loja. O endpoint usa as variáveis de ambiente e devolve <code>{ payment: { payload, qr, url } }</code>. O HTML publicado é público: qualquer chave no navegador vaza.</span></div>
   ` : `<p class="tiny dim mt-12">Modo manual: o cliente paga no app do banco e você confirma o pedido em <b>Pedidos</b>. Sem taxas e sem depender de aprovação de conta.</p>`}
+</div>
+
+<div class="card-block">
+  <div class="block-head">
+    <span class="bi">${icon('receipt', 16)}</span>
+    <div><h3>Recebimento e saque</h3><p>O que o gateway pede para liberar o dinheiro e enviar para a sua conta.</p></div>
+    <div class="right">${badge('privado', 'neutral')}</div>
+  </div>
+  <div class="alert alert-info">${icon('lock', 16)}<span><b>Estes dados ficam apenas neste navegador</b> e não são publicados na loja. O saque em si é feito no painel/app do gateway, na conta bancária cadastrada lá — nenhuma API de checkout faz saque automático.</span></div>
+  <div class="grid-2 mt-12">
+    <label class="field"><span class="field-label">Titular da conta</span><input id="poName" placeholder="Nome completo ou razão social"></label>
+    <label class="field"><span class="field-label">CPF ou CNPJ</span><input id="poDoc" placeholder="000.000.000-00"></label>
+    <label class="field"><span class="field-label">Banco</span><input id="poBank" placeholder="Ex.: Nubank, Itaú, Banco do Brasil"></label>
+    <label class="field"><span class="field-label">Agência</span><input id="poAgency" placeholder="0001"></label>
+    <label class="field"><span class="field-label">Conta com dígito</span><input id="poAccount" placeholder="0000000-0"></label>
+    <label class="field"><span class="field-label">Tipo de conta</span><select id="poType">
+      <option value="corrente">Conta corrente</option>
+      <option value="poupanca">Conta poupança</option>
+      <option value="pagamento">Conta de pagamento</option>
+    </select></label>
+    <label class="field" style="grid-column:1/-1"><span class="field-label">Chave PIX para receber</span><input id="poPix" placeholder="Mesma chave usada no gateway"></label>
+  </div>
+  <div class="flex gap-8 mt-12">
+    <button class="btn btn-ghost btn-sm" data-save-payout>${icon('save', 14)} Salvar dados</button>
+    <button class="btn btn-ghost btn-sm" data-clear-payout>${icon('trash', 14)} Limpar</button>
+    <span class="tiny dim" id="payoutStatus"></span>
+  </div>
+
+  <div class="divider"></div>
+  <b class="tiny" style="letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Checklist para receber e sacar</b>
+  <ol class="payout-steps">
+    <li><b>Crie/valide a conta</b> no gateway escolhido e conclua o KYC (documento, selfie e comprovante de endereço).</li>
+    <li><b>Cadastre a conta bancária</b> de mesmo titular no painel do gateway. É para lá que o saque vai.</li>
+    <li><b>Copie a chave de API</b> do gateway e salve em <code>MP_ACCESS_TOKEN</code>, <code>ASAAS_API_KEY</code>, <code>PAGARME_SECRET_KEY</code> ou <code>CUSTOM_GATEWAY_TOKEN</code> na Vercel.</li>
+    <li><b>Cadastre o webhook</b> acima no gateway, com o segredo <code>WEBHOOK_SECRET</code>, para liberar o pedido automaticamente.</li>
+    <li><b>Faça uma cobrança de teste</b> em sandbox, confirme o recebimento e só então mude o ambiente para produção.</li>
+    <li><b>Solicite o saque</b> no painel do gateway (PIX ou TED). O prazo e a taxa aparecem lá; não é feito pelo checkout.</li>
+  </ol>
 </div>
 
 <div class="card-block">
@@ -862,6 +1021,18 @@ ${pageHead('Pagamentos', 'Receba por PIX na sua conta. Manual por padrão, autom
 
   bindLive(pane, api, (store, path) => {
     if (path && path.startsWith('payment.')) refreshPixPreview(pane, store);
+
+    // sugere o webhook a partir do endpoint publicado
+    if (path === 'payment.gateway.endpoint') {
+      const input = pane.querySelector('#gatewayWebhook');
+      const current = String(store.payment?.gateway?.webhookUrl || '').trim();
+      if (input && (!current || current.includes('seu-projeto.vercel.app'))) {
+        const next = clone(api.store);
+        next.payment.gateway.webhookUrl = suggestWebhook(next.payment.gateway);
+        api.save(next);
+        input.value = next.payment.gateway.webhookUrl;
+      }
+    }
   });
 
   pane.querySelectorAll('[data-pix-live]').forEach((el) => {
@@ -897,6 +1068,70 @@ ${pageHead('Pagamentos', 'Receba por PIX na sua conta. Manual por padrão, autom
     });
   });
 
+  // webhook do gateway
+  const webhookInput = pane.querySelector('#gatewayWebhook');
+  pane.querySelector('[data-copy-webhook]')?.addEventListener('click', () => {
+    copyWithToast(webhookInput?.value || suggestWebhook(api.store.payment?.gateway || {}), 'URL do webhook copiada');
+  });
+
+  // testa endpoint de cobrança + webhook
+  pane.querySelector('[data-test-gateway]')?.addEventListener('click', async () => {
+    const out = pane.querySelector('#gwTestResult');
+    const endpoint = String(api.store.payment?.gateway?.endpoint || '').trim();
+    const hook = String(webhookInput?.value || '').trim();
+    if (!endpoint && !hook) { toast('Informe o endpoint e/ou o webhook primeiro.', 'error'); return; }
+    if (out) out.textContent = 'Testando conexões…';
+    const results = [];
+    const probe = async (label, url) => {
+      if (!url) return;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 9000);
+      try {
+        const res = await fetch(url, { method: 'GET', signal: controller.signal });
+        let data = {};
+        try { data = await res.json(); } catch { data = {}; }
+        results.push(res.ok
+          ? `✅ ${label}: OK${data.service ? ' (' + data.service + ')' : ''}`
+          : `❌ ${label}: HTTP ${res.status}${data.error ? ' · ' + data.error : ''}`);
+      } catch (err) {
+        results.push(`❌ ${label}: ${err.name === 'AbortError' ? 'tempo esgotado' : 'sem resposta/CORS'}`);
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+    if (endpoint) await probe('cobrança', endpoint);
+    if (hook) await probe('webhook', hook);
+    if (out) out.textContent = results.join('  ·  ') || 'Nada para testar.';
+    toast(results.every((r) => r.startsWith('✅')) ? 'Conexões respondendo.' : 'Confira os detalhes do teste.', results.every((r) => r.startsWith('✅')) ? 'success' : 'error');
+  });
+
+  // dados privados de recebimento/saque (não vão para a loja publicada)
+  const payoutInputs = ['poName', 'poDoc', 'poBank', 'poAgency', 'poAccount', 'poType', 'poPix'];
+  const savedPayout = readLocalJson(payoutKey(api.store.id));
+  payoutInputs.forEach((id) => {
+    const el = pane.querySelector('#' + id);
+    if (el) el.value = savedPayout[id] || el.value || '';
+  });
+  pane.querySelector('[data-save-payout]')?.addEventListener('click', () => {
+    const data = {};
+    payoutInputs.forEach((id) => { data[id] = String(pane.querySelector('#' + id)?.value || '').trim(); });
+    try {
+      localStorage.setItem(payoutKey(api.store.id), JSON.stringify(data));
+      const st = pane.querySelector('#payoutStatus');
+      if (st) st.textContent = 'Salvo neste navegador.';
+      toast('Dados de recebimento salvos apenas neste navegador.');
+    } catch {
+      toast('Não foi possível salvar neste navegador.', 'error');
+    }
+  });
+  pane.querySelector('[data-clear-payout]')?.addEventListener('click', async () => {
+    const ok = await confirmDialog({ title: 'Limpar dados de recebimento', text: 'Eles serão removidos apenas deste navegador.', confirmLabel: 'Limpar' });
+    if (!ok) return;
+    try { localStorage.removeItem(payoutKey(api.store.id)); } catch { /* ignore */ }
+    payoutInputs.forEach((id) => { const el = pane.querySelector('#' + id); if (el && el.tagName !== 'SELECT') el.value = ''; });
+    toast('Dados removidos.');
+  });
+
   pane.querySelectorAll('[data-copy-pix]').forEach((b) => b.addEventListener('click', () => copyWithToast(previewPayload(api.store), 'Código PIX copiado')));
 
   pane.querySelector('[data-open-preview-pay]')?.addEventListener('click', async () => {
@@ -905,6 +1140,29 @@ ${pageHead('Pagamentos', 'Receba por PIX na sua conta. Manual por padrão, autom
     window.open(url, '_blank', 'noopener');
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   });
+}
+
+function suggestWebhook(gateway = {}) {
+  const base = String(gateway.endpoint || '').replace(/\/+$/, '');
+  if (base) {
+    try {
+      const url = new URL(base);
+      const root = url.origin;
+      return root + '/api/webhook?secret=SEU_SEGREDO';
+    } catch { /* ignora */ }
+  }
+  return 'https://seu-projeto.vercel.app/api/webhook?secret=SEU_SEGREDO';
+}
+
+const payoutKey = (storeId = '') => 'oc:payout:' + storeId;
+
+function readLocalJson(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
 }
 
 function previewPayload(store) {

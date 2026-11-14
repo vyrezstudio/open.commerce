@@ -744,7 +744,7 @@ function storefrontRuntime() {
   function gatewayInfo() {
     const g = (S.payment && S.payment.gateway) || {};
     const manual = !g.provider || g.provider === 'manual';
-    const configured = !manual && (!!g.endpoint || (g.provider === 'mercadopago' && !!g.apiKey));
+    const configured = !manual && !!g.endpoint;
     return { ...g, manual, configured };
   }
 
@@ -1154,33 +1154,7 @@ function storefrontRuntime() {
     }
 
     if (g.provider === 'mercadopago' && g.apiKey) {
-      let res;
-      try {
-        res = await fetch('https://api.mercadopago.com/v1/payments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + g.apiKey, 'X-Idempotency-Key': order.id },
-          body: JSON.stringify({
-            transaction_amount: Number((order.total / 100).toFixed(2)),
-            description: order.description || ('Pedido ' + order.id),
-            payment_method_id: 'pix',
-            external_reference: order.id,
-            payer: { email: order.customer.email || 'cliente@' + (location.hostname || 'loja.com'), first_name: String(order.customer.name || 'Cliente').split(' ')[0] },
-          }),
-        });
-      } catch (err) {
-        throw new Error('O Mercado Pago bloqueou a chamada direta (CORS). Use o endpoint serverless em Pagamentos.');
-      }
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const cause = Array.isArray(data.cause) && data.cause[0] ? data.cause[0].description || data.cause[0].code : '';
-        throw new Error('Mercado Pago: ' + (data.message || cause || res.status));
-      }
-      const tx = (data.point_of_interaction && data.point_of_interaction.transaction_data) || {};
-      return {
-        payload: tx.qr_code || '',
-        qr: tx.qr_code_base64 ? 'data:image/png;base64,' + tx.qr_code_base64 : '',
-        url: tx.ticket_url || '',
-      };
+      throw new Error('Por segurança, a chave do Mercado Pago não é mais usada no navegador. Configure o endpoint serverless em Pagamentos.');
     }
 
     throw new Error('Configure o endpoint do gateway em Pagamentos para usar ' + (g.provider || 'esta opção') + '.');
@@ -1519,13 +1493,34 @@ export function themeVars(theme = {}) {
 }
 
 /**
+ * Remove segredos da loja antes de publicar o HTML (o arquivo é público).
+ * Chaves de gateway ficam apenas nas variáveis de ambiente do servidor.
+ */
+export function publicStore(store = {}) {
+  const copy = JSON.parse(JSON.stringify(store));
+  if (copy.payment && copy.payment.gateway) {
+    delete copy.payment.gateway.apiKey;
+    delete copy.payment.gateway.publicKey;
+    delete copy.payment.gateway.accessToken;
+    delete copy.payment.gateway.secret;
+    delete copy.payment.gateway.token;
+    // URL de webhook pode conter segredo: fica só no painel do lojista.
+    delete copy.payment.gateway.webhookUrl;
+  }
+  if (copy.integrations) {
+    delete copy.integrations.customJsSecret;
+  }
+  return copy;
+}
+
+/**
  * Monta o HTML completo da loja.
  * @param {object} store loja normalizada
  * @param {{preview?:boolean}} opts
  */
 export async function buildStoreHTML(store, opts = {}) {
   const preview = !!opts.preview;
-  const s = store;
+  const s = publicStore(store);
   const theme = s.theme || {};
   const products = (s.products || []).filter((p) => p.active !== false);
   const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));

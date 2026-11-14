@@ -2,7 +2,7 @@
   "name": "opencommerce-gateway",
   "private": true,
   "type": "module",
-  "description": "Endpoint serverless de PIX para o OpenCommerce (Mercado Pago, Asaas e Pagar.me).",
+  "description": "Backend serverless do OpenCommerce: proxy de IA, gateway PIX e webhook",
   "scripts": {
     "dev": "vercel dev"
   },

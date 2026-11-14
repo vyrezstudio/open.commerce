@@ -11,6 +11,9 @@ export const BRAND = {
   email: '',
   priceLabel: 'Grátis, open source',
   year: new Date().getFullYear(),
+  // Opcional: publique a pasta serverless/ e cole as URLs aqui para pré-preencher o painel.
+  aiProxyUrl: '',
+  gatewayUrl: '',
 };
 
 export const PLANS = [

@@ -2,9 +2,29 @@
 
 import { icon } from './ui.js';
 import { BRAND, PLANS } from './config.js';
+import { TEMPLATES } from './schema.js';
 
 const feature = (ic, title, text, cls = 'span-2') =>
   `<article class="bento-card ${cls}"><div class="bi">${icon(ic, 19)}</div><h3>${title}</h3><p>${text}</p></article>`;
+
+const showcase = (tpl, i) => {
+  const th = tpl.theme;
+  return `<a class="showcase-card" href="#/nova" style="--sc-bg:${th.bg};--sc-surface:${th.surface};--sc-text:${th.text};--sc-muted:${th.muted};--sc-p:${th.primary};--sc-a:${th.accent};--sc-s2:${th.surface2};transition-delay:${i * 40}ms">
+    <div class="sc-prev">
+      <div class="sc-nav"><i></i><span></span><span></span><em></em></div>
+      <div class="sc-hero">
+        <div class="sc-copy"><b></b><b class="s"></b><span></span><i></i></div>
+        <div class="sc-art"></div>
+      </div>
+      <div class="sc-cards"><i></i><i></i><i></i></div>
+    </div>
+    <div class="sc-meta">
+      <div><b>${tpl.name}</b><small>${tpl.mood}</small></div>
+      <span>${tpl.tagline}</span>
+      <div class="sc-dots"><i></i><i></i><i></i><i></i></div>
+    </div>
+  </a>`;
+};
 
 export function renderLanding(root) {
   root.innerHTML = `
@@ -13,6 +33,7 @@ export function renderLanding(root) {
     <a class="logo" href="#/"><img class="logo-mark" src="assets/img/logo-mark.png" alt=""><span>${BRAND.name}</span></a>
     <nav class="site-nav">
       <a href="#recursos">Recursos</a>
+      <a href="#modelos">Modelos</a>
       <a href="#como-funciona">Como funciona</a>
       <a href="#precos">Preços</a>
       <a href="#faq">FAQ</a>
@@ -29,12 +50,12 @@ export function renderLanding(root) {
   <section class="hero-land">
     <div class="wrap-xl hero-land-in">
       <div>
-        <span class="badge-pill"><b>NOVO</b> IA que monta a loja inteira por você</span>
+        <span class="badge-pill"><b>NOVO</b> 14 modelos prontos + IA que muda qualquer coisa</span>
         <h1>Sua loja no ar<br>em minutos. <span class="grad">A IA faz o site,<br>você faz a venda.</span></h1>
         <p class="lead">Descreva o seu negócio em uma frase. O OpenCommerce cria catálogo, textos, visual e checkout PIX — pronto para publicar no GitHub Pages, sem mensalidade e sem depender de plataforma.</p>
         <div class="hero-cta">
           <a class="btn btn-primary btn-lg" href="#/nova">${icon('wand', 17)} Criar minha loja agora</a>
-          <a class="btn btn-ghost btn-lg" href="#/lojas">Ver demonstração ${icon('chevron', 15)}</a>
+          <a class="btn btn-ghost btn-lg" href="#modelos">Ver modelos ${icon('chevron', 15)}</a>
         </div>
         <div class="hero-trust">
           <span>${icon('check', 14)} Sem cartão de crédito</span>
@@ -82,10 +103,27 @@ export function renderLanding(root) {
     <div class="wrap-xl strip-in">
       <p>Tudo em um só lugar</p>
       <ul>
-        <li>IA integrada</li><li>PIX</li><li>Temas</li><li>Produtos</li><li>Pedidos</li><li>GitHub Pages</li>
+        <li>IA integrada</li><li>14 modelos</li><li>PIX</li><li>Gateway + webhook</li><li>Pedidos</li><li>GitHub Pages</li>
       </ul>
     </div>
   </div>
+
+  <section class="land-sec showcase-sec" id="modelos">
+    <div class="wrap-xl">
+      <div class="land-sec-head">
+        <span class="kicker">Modelos</span>
+        <h2>Comece bonito.<br>Depois deixe com a sua cara.</h2>
+        <p class="sub">Quatorze visuais completos — cores, fontes, cantos e composição — prontos para aplicar em um clique. Troque a paleta, a tipografia e o layout sem escrever código.</p>
+      </div>
+      <div class="showcase-grid">
+        ${TEMPLATES.slice(0, 8).map(showcase).join('')}
+      </div>
+      <div class="showcase-foot">
+        <span>${icon('palette', 15)} Mais 8 paletas rápidas para mudar só as cores</span>
+        <a class="btn btn-ghost btn-sm" href="#/nova">${icon('sparkles', 14)} Testar no meu projeto</a>
+      </div>
+    </div>
+  </section>
 
   <section class="land-sec" id="recursos">
     <div class="wrap-xl">
@@ -97,18 +135,18 @@ export function renderLanding(root) {
       <div class="bento">
         <article class="bento-card span-4 feat">
           <div class="bi">${icon('sparkles', 19)}</div>
-          <h3>Assistente que constrói a loja de verdade</h3>
-          <p>Escreva “loja de cafés especiais com assinatura mensal, visual acolhedor e entrega em São Paulo”. A IA gera nome, textos, produtos, preços, FAQ, depoimentos e o tema completo. Depois, é só pedir ajustes em português.</p>
+          <h3>Assistente que constrói — e depois muda qualquer coisa</h3>
+          <p>Escreva “loja de cafés especiais com assinatura mensal, visual acolhedor e entrega em São Paulo”. A IA gera nome, textos, produtos, preços, FAQ, depoimentos e o tema completo. Depois peça “deixe igual ao site da Apple”, “mais premium e escuro” ou “mude o layout do hero” — e ela aplica.</p>
           <div class="mini-window">
             <div class="top"><i></i><i></i><i></i></div>
-            <div class="txt"><b>você</b> · Deixe o visual mais premium, com verde profundo e dourado.<br><b>IA</b> · Tema ajustado. Também reescrevi o hero e criei 2 produtos de assinatura. <span class="g">✓ aplicado</span></div>
+            <div class="txt"><b>você</b> · Quero um visual tipo Sharpify: preto, tipografia grande e verde-limão.<br><b>IA</b> · Entendi. Apliquei o tema Sharp, hero dividido e cantos retos. <span class="g">✓ aplicado</span></div>
           </div>
         </article>
-        ${feature('qr', 'PIX de verdade, sem gateway', 'Gera o QR Code e o copia-e-cola com CRC16 no próprio navegador. O cliente paga no app do banco e você confirma o pedido. Quer automatizar? Conecte Mercado Pago, Asaas, EFI, Pagar.me ou sua própria API.', 'span-2')}
-        ${feature('palette', '6 temas prontos e editáveis', 'Aurora, Neon, Ocean, Papel, Clean e Lux. Troque cores, fontes, cantos e estilo do hero sem tocar em código.', 'span-2')}
+        ${feature('qr', 'PIX de verdade, sem gateway', 'Gera o QR Code e o copia-e-cola com CRC16 no próprio navegador. O cliente paga no app do banco e você confirma o pedido no chat. Quer automatizar? Use Mercado Pago, Asaas, Pagar.me ou a sua API com webhook.', 'span-2')}
+        ${feature('palette', '14 modelos prontos + 8 paletas', 'Aurora, Sharp, Midnight, Citrus, Sage, Editorial, Boutique, Tech, Candy e mais. Aplique um visual completo em um clique e troque só as cores quando quiser.', 'span-2')}
         ${feature('box', 'Produtos, pedidos e cupons', 'Catálogo com categorias, busca, estoque, ofertas e galeria. Pedidos chegam por WhatsApp, webhook ou ficam salvos no painel.', 'span-2')}
         ${feature('upload', 'Publicação em 1 clique', 'Exporte um ZIP com a loja pronta (1 arquivo HTML + .nojekyll). Suba no GitHub, ative o Pages e pronto: HTTPS e domínio próprio de graça.', 'span-2')}
-        ${feature('code', 'Seu código, suas regras', 'Sem build, sem dependências, sem lock-in. HTML, CSS e JavaScript puros. Edite o que quiser, hospede onde quiser, venda para sempre.', 'span-2')}
+        ${feature('shield', 'Chaves protegidas no servidor', 'O projeto inclui proxy de IA e endpoints de gateway prontos para Vercel. A chave fica nas variáveis de ambiente e nunca no HTML público.', 'span-2')}
       </div>
     </div>
   </section>
@@ -176,7 +214,7 @@ export function renderLanding(root) {
             <a class="btn ${p.highlight ? 'btn-primary' : 'btn-ghost'} btn-block" style="margin-top:20px" href="${p.href}">${p.cta}</a>
           </article>`).join('')}
       </div>
-      <div class="alert alert-info mt-16">${icon('info', 16)}<span><b>Sobre a IA:</b> você conecta a sua própria chave (OpenAI, Gemini, OpenRouter, Groq, DeepSeek, Claude ou Ollama local). Nada passa por servidores nossos — a chave fica no seu navegador.</span></div>
+      <div class="alert alert-info mt-16">${icon('info', 16)}<span><b>Sobre a IA:</b> conecte a sua chave (OpenAI, Gemini, OpenRouter, Groq, DeepSeek, Claude ou Ollama) direto no navegador ou use o <b>proxy seguro</b> incluído no projeto para que a chave fique só no servidor.</span></div>
     </div>
   </section>
 
@@ -188,9 +226,11 @@ export function renderLanding(root) {
       </div>
       <div class="faq-land">
         ${[
+          ['A IA consegue deixar igual a um site que eu gosto?', 'Sim, no estilo. Você cola o link ou descreve o visual (cores, tipografia, cantos, tipo de hero) e a IA traduz para o tema da loja: paleta, fontes, radius e composição. Ela não copia logotipos, textos autorais nem imagens da marca — o objetivo é a direção visual, não a cópia.'],
           ['Preciso saber programar?', 'Não. Você descreve a loja, ajusta o que quiser no painel e baixa o arquivo pronto. Se souber HTML/CSS, pode personalizar tudo depois — o código é limpo e sem build.'],
           ['Onde a loja fica hospedada?', 'Onde você quiser. O caminho mais simples é o GitHub Pages: é gratuito, tem HTTPS e aceita domínio próprio. Também funciona em Netlify, Vercel, Cloudflare Pages ou qualquer hospedagem estática.'],
-          ['Como recebo os pagamentos?', 'Por PIX, direto na sua conta. O checkout gera o código com a sua chave. A confirmação é manual (você confere no banco) ou automática se você configurar um gateway. O dinheiro nunca passa pelo OpenCommerce.'],
+          ['Como recebo os pagamentos?', 'Por PIX, direto na sua conta. O checkout gera o código com a sua chave. A confirmação é manual (você confere no banco) ou automática se você configurar um gateway com webhook. O dinheiro nunca passa pelo OpenCommerce.'],
+          ['Onde ficam as chaves de IA e do gateway?', 'Em um site estático, qualquer chave no JavaScript fica visível. Por isso o projeto inclui um proxy de IA e endpoints de gateway para Vercel: as chaves ficam nas variáveis de ambiente do servidor. No modo direto, a chave de IA fica só no seu navegador.'],
           ['A IA é gratuita?', 'O OpenCommerce não cobra nada. A IA usa a sua chave: Gemini e Groq têm planos gratuitos, e modelos pagos custam centavos por loja. Sem chave, o gerador local cria a estrutura para você editar.'],
           ['Meus dados ficam salvos onde?', 'No seu navegador (localStorage). Nada é enviado para nós. Faça backup em Configurações › Backup para não perder os projetos ao limpar o navegador.'],
           ['Posso usar para clientes?', 'Sim — foi feito para isso. Crie quantas lojas quiser, duplique projetos e entregue o ZIP com a configuração de cada cliente.'],

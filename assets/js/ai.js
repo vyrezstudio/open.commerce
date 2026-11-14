@@ -85,6 +85,8 @@ export const DEFAULT_AI_CONFIG = {
   keys: {},
   baseUrl: '',
   temperature: 0.75,
+  useProxy: false,
+  proxyUrl: '',
 };
 
 export function getAIConfig() {
@@ -111,9 +113,64 @@ export function getApiKey(config = getAIConfig()) {
   return (config.keys && config.keys[config.provider]) || '';
 }
 
+export function usingProxy(config = getAIConfig()) {
+  return !!(config.useProxy && String(config.proxyUrl || '').trim());
+}
+
 export function hasAI(config = getAIConfig()) {
+  if (usingProxy(config)) return true;
   if (config.provider === 'ollama') return true;
   return !!getApiKey(config);
+}
+
+function proxyEndpoint(config) {
+  return String(config.proxyUrl || '').trim().replace(/\/+$/, '');
+}
+
+function proxyError(status, body) {
+  let detail = '';
+  try {
+    const data = typeof body === 'string' ? JSON.parse(body) : body;
+    detail = data?.error || data?.message || '';
+  } catch {
+    detail = typeof body === 'string' ? body.slice(0, 240) : '';
+  }
+  if (status === 429) return 'Muitas solicitações para a IA. Aguarde um minuto e tente novamente.';
+  if (status === 401 || status === 403) return 'O proxy de IA recusou a requisição. Confira a chave e o ALLOWED_ORIGIN no servidor.';
+  if (status === 404) return 'Proxy de IA não encontrado. Confira a URL em Configurações › IA.';
+  return 'Proxy de IA: ' + (detail || 'erro ' + status);
+}
+
+async function callProxy({ system, user, json, temperature, maxTokens, config }) {
+  const endpoint = proxyEndpoint(config);
+  if (!endpoint) throw new Error('Informe a URL do proxy seguro em Configurações › Inteligência Artificial.');
+
+  let res;
+  try {
+    res = await request(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system,
+        user,
+        model: config.model || providerInfo(config.provider).models[0] || '',
+        temperature: typeof temperature === 'number' ? temperature : config.temperature,
+        max_tokens: maxTokens,
+        json,
+      }),
+    }, 120000);
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('A IA demorou demais para responder. Tente novamente com um pedido menor.');
+    throw new Error('Não foi possível conectar ao proxy de IA. Confira a URL e o CORS do endpoint.');
+  }
+
+  const raw = await res.text().catch(() => '');
+  if (!res.ok) throw new Error(proxyError(res.status, raw));
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
+  const text = data.text || data.content || data?.choices?.[0]?.message?.content || '';
+  if (!text) throw new Error('O proxy de IA respondeu sem texto.');
+  return text;
 }
 
 function baseUrl(config) {
@@ -161,6 +218,10 @@ export async function callAI({ system = '', user, json = true, temperature, maxT
   const temp = typeof temperature === 'number' ? temperature : (typeof config.temperature === 'number' ? config.temperature : 0.75);
   const model = config.model || info.models[0];
 
+  if (usingProxy(config)) {
+    if (!model) throw new Error('Selecione um modelo de IA.');
+    return callProxy({ system, user, json, temperature: temp, maxTokens, config });
+  }
   if (config.provider !== 'ollama' && !key) {
     throw new Error('Nenhuma chave de IA configurada. Vá em Configurações › Inteligência Artificial.');
   }
@@ -263,6 +324,7 @@ export async function testAI(config = getAIConfig()) {
 export async function listModels(config = getAIConfig()) {
   const info = providerInfo(config.provider);
   const key = getApiKey(config);
+  if (usingProxy(config)) return info.models || [];
   if (info.kind === 'anthropic') return info.models;
   if (config.provider === 'ollama') {
     const res = await request(baseUrl(config) + '/models', { headers: { Authorization: 'Bearer ollama' } }, 8000);

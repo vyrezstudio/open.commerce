@@ -25,10 +25,20 @@ function json(res, status, data) {
 }
 
 function setCors(req, res) {
-  const allowed = process.env.ALLOWED_ORIGIN || req.headers.origin || '*';
+  const configured = String(process.env.ALLOWED_ORIGIN || '').trim();
+  const origin = req.headers.origin || '';
+  let allowed = '*';
+  if (configured) {
+    const list = configured.split(',').map((item) => item.trim()).filter(Boolean);
+    if (list.includes('*')) allowed = '*';
+    else if (list.includes(origin)) allowed = origin;
+    else allowed = list[0] || '*';
+  } else if (origin) {
+    allowed = origin;
+  }
   res.setHeader('Access-Control-Allow-Origin', allowed);
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
@@ -228,6 +238,66 @@ async function createPagarme(order) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Gateway próprio / API personalizada                                 */
+/* ------------------------------------------------------------------ */
+
+const pickValue = (obj, keys) => {
+  if (!obj || typeof obj !== 'object') return '';
+  for (const key of keys) {
+    if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
+  }
+  return '';
+};
+
+function normalizeQr(value) {
+  const v = String(value || '');
+  if (!v) return '';
+  if (/^data:image\//.test(v) || /^https?:\/\//.test(v)) return v;
+  if (/^[A-Za-z0-9+/=\r\n]+$/.test(v) && v.length > 120) return 'data:image/png;base64,' + v.replace(/\s+/g, '');
+  return '';
+}
+
+async function createCustom(order, env, store) {
+  const url = requireEnv('CUSTOM_GATEWAY_URL');
+  const token = process.env.CUSTOM_GATEWAY_TOKEN || '';
+  const secret = process.env.WEBHOOK_SECRET || '';
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: 'Bearer ' + token } : {}),
+      ...(secret ? { 'X-OpenCommerce-Secret': secret } : {}),
+    },
+    body: JSON.stringify({
+      action: 'charge',
+      provider: 'custom',
+      storeId: order.storeId || store?.id || '',
+      store: store || null,
+      order,
+      env: env || 'sandbox',
+    }),
+  });
+
+  const raw = await res.text();
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
+  if (!res.ok) {
+    const detail = data.message || data.error || data.detail || raw.slice(0, 220) || ('HTTP ' + res.status);
+    throw new Error('Gateway personalizado: ' + detail);
+  }
+
+  const payment = data.payment || data.data || data.pix || data;
+  return {
+    provider: 'custom',
+    payload: String(pickValue(payment, ['payload', 'pix_copy_paste', 'pixCopiaECola', 'pix_copia_e_cola', 'brCode', 'brcode', 'emv', 'code']) || ''),
+    qr: normalizeQr(pickValue(payment, ['qr', 'qrCode', 'qr_code', 'qr_code_base64', 'encodedImage', 'imagemQrcode', 'qrcode'])),
+    url: String(pickValue(payment, ['url', 'ticket_url', 'init_point', 'checkoutUrl', 'checkout_url', 'invoiceUrl', 'link', 'paymentLink']) || ''),
+    transactionId: String(pickValue(payment, ['id', 'transactionId', 'transaction_id', 'paymentId', 'payment_id']) || ''),
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* Handler                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -244,7 +314,9 @@ export default async function handler(req, res) {
     return json(res, 200, {
       ok: true,
       service: 'opencommerce-gateway',
-      providers: ['mercadopago', 'asaas', 'pagarme'],
+      providers: ['mercadopago', 'asaas', 'pagarme', 'custom'],
+      custom: !!process.env.CUSTOM_GATEWAY_URL,
+      webhook: !!process.env.WEBHOOK_SECRET,
       note: 'EFI exige certificado mTLS e deve ser executada em um servidor compatível.',
     });
   }
@@ -253,7 +325,7 @@ export default async function handler(req, res) {
 
   try {
     const body = await readBody(req);
-    const { provider, order, env } = body || {};
+    const { provider, order, env, store } = body || {};
 
     if (!provider) return json(res, 400, { error: 'Informe o provider.' });
     if (!order || !order.id) return json(res, 400, { error: 'Pedido inválido.' });
@@ -264,6 +336,7 @@ export default async function handler(req, res) {
     if (provider === 'mercadopago') payment = await createMercadoPago(order);
     else if (provider === 'asaas') payment = await createAsaas(order, env);
     else if (provider === 'pagarme') payment = await createPagarme(order);
+    else if (provider === 'custom') payment = await createCustom(order, env, store);
     else if (provider === 'efi') {
       return json(res, 501, {
         error: 'EFI (Gerencianet) exige certificado mTLS. Rode este endpoint em um servidor Node com https.Agent e o certificado .p12, ou use Mercado Pago/Asaas/Pagar.me.',

@@ -1,6 +1,6 @@
 /* OpenCommerce · onboarding, lista de lojas e configurações globais */
 
-import { icon, toast, toastError, spinner, openModal, confirmDialog, field, badge } from './ui.js';
+import { icon, toast, toastError, spinner, openModal, confirmDialog, field, badge, toggle } from './ui.js';
 import { esc, slugify, bytes, downloadJson, readJsonFile, downloadBlob, fmtDate } from './util.js';
 import { BRAND } from './config.js';
 import { NICHE_PRESETS, defaultStore } from './schema.js';
@@ -376,6 +376,21 @@ ${simpleHead('config')}
       <div class="right">${hasAI() ? badge('conectada', 'green') : badge('não configurada', 'amber')}</div>
     </div>
 
+    <div class="proxy-box">
+      ${toggle({
+        label: 'Usar proxy seguro (recomendado para site público)',
+        name: 'useProxy',
+        checked: !!cfg.useProxy,
+        hint: 'A chave fica no servidor. O navegador e os visitantes nunca veem a chave.',
+      })}
+      <label class="field mt-12">
+        <span class="field-label">URL do proxy de IA</span>
+        <input id="aiProxy" value="${esc(cfg.proxyUrl || BRAND.aiProxyUrl || '')}" placeholder="https://seu-projeto.vercel.app/api/ai" ${cfg.useProxy ? '' : 'disabled'}>
+        <span class="hint">Publique <code>serverless/api/ai.js</code> e configure <code>AI_API_KEY</code> nas variáveis de ambiente. O endpoint precisa liberar o domínio da loja no CORS.</span>
+      </label>
+      <div class="proxy-note">${icon('shield', 14)} <span><b>Por que não colocar a chave no site?</b> Qualquer pessoa consegue ler o JavaScript de um site estático. Com o proxy, a chave fica protegida e você pode trocar de modelo sem republicar a loja.</span></div>
+    </div>
+
     <div class="grid-2">
       <label class="field">
         <span class="field-label">Provedor</span>
@@ -474,6 +489,18 @@ ${simpleHead('config')}
   const baseWrap = root.querySelector('#customBaseWrap');
   const baseInput = root.querySelector('#aiBase');
   const status = root.querySelector('#aiStatus');
+  const proxyToggle = root.querySelector('input[name="useProxy"]');
+  const proxyInput = root.querySelector('#aiProxy');
+
+  const syncProxyUI = () => {
+    const on = !!proxyToggle?.checked;
+    proxyInput.disabled = !on;
+    keyInput.disabled = on;
+    baseInput.disabled = on;
+    keyInput.closest('.field')?.classList.toggle('is-muted', on);
+    baseWrap.classList.toggle('hidden', on || providerSel.value !== 'custom');
+    if (on) status.textContent = 'Proxy seguro ativo. A chave fica no servidor.';
+  };
 
   const persist = () => {
     saveAIConfig({
@@ -481,6 +508,8 @@ ${simpleHead('config')}
       model: modelInput.value.trim(),
       baseUrl: baseInput.value.trim(),
       temperature: Number(tempInput.value),
+      useProxy: !!proxyToggle?.checked,
+      proxyUrl: proxyInput.value.trim(),
       keys: { [providerSel.value]: keyInput.value.trim() },
     });
   };
@@ -491,7 +520,7 @@ ${simpleHead('config')}
     const saved = current.keys?.[providerSel.value] || '';
     keyInput.value = saved;
     keyInput.placeholder = p.keyHint || 'sua chave';
-    baseWrap.classList.toggle('hidden', providerSel.value !== 'custom');
+    baseWrap.classList.toggle('hidden', proxyToggle.checked || providerSel.value !== 'custom');
     baseInput.value = providerSel.value === 'custom' ? (current.baseUrl || '') : '';
     modelInput.value = p.models[0] || '';
     root.querySelector('#modelList').innerHTML = (p.models || []).map((m) => `<option value="${esc(m)}">`).join('');
@@ -499,6 +528,13 @@ ${simpleHead('config')}
     persist();
     status.textContent = 'Provedor alterado. Clique em testar.';
   });
+
+  proxyToggle?.addEventListener('change', () => {
+    syncProxyUI();
+    persist();
+  });
+  proxyInput?.addEventListener('change', persist);
+  syncProxyUI();
 
   tempInput.addEventListener('input', () => { root.querySelector('#tempVal').textContent = Number(tempInput.value).toFixed(2); });
   root.querySelector('#toggleKey').addEventListener('click', () => {

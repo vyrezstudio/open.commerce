@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/ai.js": { "maxDuration": 60 },
+    "api/gateway.js": { "maxDuration": 30 },
+    "api/webhook.js": { "maxDuration": 30 }
+  }
+}
